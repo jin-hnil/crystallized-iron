@@ -2,24 +2,37 @@
 
 ## 1. TỔNG QUAN DỰ ÁN
 - **Tên dự án:** Crystallized Iron
-- **Thể loại:** 2D Side-Scrolling MMORPG (Nhập vai hành động màn hình ngang nhiều người chơi).
+- **Thể loại:** 2D Top-Down MMORPG (Nhập vai hành động góc nhìn từ trên xuống nhiều người chơi).
 - **Phong cách đồ họa:** Pixel Art / Chibi (Hình ảnh 2D gần gũi, tối ưu phần cứng).
-- **Cốt truyện:** Hậu tận thế rực rỡ (Post-apocalyptic Fantasy). Sau sự kiện "Vẫn Thạch Rơi", thế giới bị biến đổi bởi một loại siêu khoáng chất vô định hình mang tên "Crystallized Iron" (Thiết Tinh). Người chơi hóa thân thành các "Kẻ Thức Tỉnh" (Awakeners), chọn gia nhập 1 trong 3 Phe Phái/Hiệp Hội. Bằng cách hấp thụ năng lượng từ Thiết Tinh, người chơi rèn luyện sức mạnh (Sát thương, HP, Năng lượng), chiến đấu với các sinh vật đột biến (Corrupted) và tranh đoạt quyền kiểm soát các "Mỏ Thiết Tinh Vĩnh Cửu" trong những giải đấu liên server.
+- **Cốt truyện:** fantasy (Post-apocalyptic Fantasy). Sau sự kiện "Vẫn Thạch Rơi", thế giới bị biến đổi bởi một loại siêu khoáng chất vô định hình mang tên "Crystallized Iron" (Thiết Tinh). Người chơi hóa thân thành các "Kẻ Thức Tỉnh" (Awakeners), chọn gia nhập 1 trong 3 Phe Phái/Hiệp Hội. Bằng cách hấp thụ năng lượng từ Thiết Tinh, người chơi rèn luyện sức mạnh (Sát thương, HP, Năng lượng), chiến đấu với các sinh vật đột biến (Corrupted) và tranh đoạt quyền kiểm soát các "Mỏ Thiết Tinh Vĩnh Cửu" trong những giải đấu liên server.
 - **Nền tảng mục tiêu:** PC (Windows) và Mobile (Android/iOS). Cross-platform cho phép người chơi ở nhiều thiết bị chơi chung server.
 - **Mô hình doanh thu định hướng:** Free to Play (Miễn phí tải & chơi) kết hợp In-App Purchase.
 
 ---
 
 ## 2. KIẾN TRÚC KỸ THUẬT (TECH STACK)
-Hệ thống được thiết kế hướng tới khả năng Scale (mở rộng) và Real-time (thời gian thực) mượt mà, phục vụ hàng ngàn người chơi cùng lúc.
+Hệ thống được thiết kế hướng tới khả năng Scale (mở rộng) và Real-time (thời gian thực) mượt mà, phục vụ lượng người chơi lớn với tài nguyên cực kỳ giới hạn (Máy chủ 4GB RAM).
 
-| Thành phần | Công nghệ Đề xuất | Lý do & Chức năng Mở rộng |
-| :--- | :--- | :--- |
-| **Client** | Unity (C#) | Hỗ trợ export đa nền tảng (PC/Mobile) dễ dàng. Xử lý va chạm 2D, Tilemap, Animation mượt mà và tối ưu hóa UI. |
-| **Backend** | Golang (hoặc Node.js) | Golang xử lý concurrency (hàng ngàn luồng kết nối) vô cùng ổn định với chi phí máy chủ thấp. |
-| **Networking** | WebSockets (TCP) | Kết nối hai chiều liên tục, độ trễ thấp phù hợp cho game thời gian thực (realtime hành động, di chuyển). |
-| **Database** | PostgreSQL | Khung lưu trữ vững chắc cho các dữ liệu quan trọng: Giao dịch, Thông tin nhân vật, Túi đồ, Tiền tệ. |
-| **Caching/State** | Redis | In-memory DB cực nhanh. Dùng để lưu vị trí (X, Y) realtime, HP hiện tại, trạng thái Online/Offline, Map Zone. |
+### A. Hạ tầng Server (Phù hợp với 4GB RAM)
+Với 4GB RAM, việc đảm bảo game chịu tải được hệ thống MMO đòi hỏi công nghệ tối ưu cao về bộ nhớ:
+- **Backend Chính:** **Golang (Go)** được lựa chọn làm giải pháp ưu tiên nhất. 
+  - *Lý do:* Khả năng biên dịch độc lập, chạy nhẹ. `Goroutine` trong Golang xử lý đa luồng vô cùng tốt, chỉ tiêu tốn ~2KB RAM cho mỗi luồng (WebSocket connection). Tránh được tình trạng Memory Leak nghiêm trọng và Spike tài nguyên của các ngôn ngữ cấp cao khác như Node.js.
+- **Dự phòng (Node.js):** Chỉ dùng khi bắt buộc, giới hạn CCU (Concurrent Users) khoảng 500-1000 người/server và phải có cơ chế Auto-Restart để chống phình RAM.
+- **Client App:** **Unity (C#)** – Hỗ trợ đa nền tảng PC/Mobile với hệ thống xử lý vật lý 2D, Tilemap mượt mà.
+- **Networking:** **WebSockets (TCP)** – Kết nối hai chiều liên tục, đảm bảo đồng bộ hóa vị trí và trạng thái chiến đấu của nhân vật tức thời (real-time).
+
+### B. Chiến lược Cấu trúc Cơ Sở Dữ Liệu (Database & Caching)
+Sử dụng độc lập 1 loại DB (như MongoDB) trong game dễ dẫn đến rủi ro Dupe đồ hoặc chậm trễ. Hệ thống do đó áp dụng mô hình liên kết đặc biệt:
+
+1. **PostgreSQL (RDBMS - Dữ liệu Cốt lõi Nhạy cảm):**
+   - **Lưu trữ:** Thông tin Tài khoản, Password, Tiền tệ (Credits/Gems), Giao dịch, và Inventory (Hành trang).
+   - **Tác dụng:** Đảm bảo tính toán vẹn ACID. Phòng chống triệt để các lỗi sao chép đồ đạc (Dupe) trong trường hợp crash server đột ngột.
+2. **MongoDB (NoSQL - Dữ liệu Khối lượng lớn & Động):**
+   - **Lưu trữ:** Log đoạn Chat toàn cầu/riêng tư, Nhật ký tiêu diệt Boss, Thiết lập cấu hình chỉ số Mobs/Quái (có thể nới rộng tùy ý mà không cần sửa Schema).
+   - **Tác dụng:** Đọc/Ghi nhanh và linh động nạp dữ liệu.
+3. **Redis (In-Memory Caching - Dữ liệu Thời gian thực):**
+   - **Lưu trữ:** Tọa độ sống của người chơi (X, Y), Lượng HP/EP hiện tại, Thời gian hồi chiêu (Cooldowns), Phân vùng Map Channels.
+   - **Tác dụng:** Siêu tốc độ, xử lý 100% các dữ liệu biến đổi liên tục trong mili-giây mà không đụng xuống ổ cứng (Disk I/O).
 
 ---
 
@@ -37,7 +50,7 @@ Mỗi nhân vật phát triển thông qua việc tích lũy điểm **Tiềm n�
 - **Cấu trúc Không gian:** Map xây dựng dạng Tilemap nhiều lớp cảnh (Foreground va chạm, Background tĩnh/động).
 - **Cơ chế Zone (Khu/Kênh):** Để chống quá tải Server và tránh tình trạng tranh giành quái quá mức, mỗi Bản đồ (Map) (Ví dụ: Rừng Nấm Đột Biến) sẽ chia thành nhiều "Khu vực" (Khu 1, Khu 2,...). Sức chứa mỗi khu cấu hình động khoảng 15-20 người chơi.
 - **Chuyển bản đồ / Zone:** Nhân vật di chuyển đến cổng dịch chuyển hoặc rìa màn hình sẽ gửi tín hiệu lên Server để đổi map/đổi khu.
-- **Cơ động học:** Tích hợp tính năng nhảy kép (Double Jump) hoặc lướt (Dash trên không), tiêu hao EP thời gian thực.
+- **Cơ động học:** Tích hợp tính năng lướt (Dash / Roll) để thu hẹp khoảng cách hoặc né đòn, tiêu hao EP thời gian thực.
 
 ### C. Cơ chế Chiến đấu (Action & Combat)
 - **Cơ bản (Đánh thường):** Chọn mục tiêu (Auto-target kẻ địch gần nhất) và click thủ công hoặc bật chế độ tự động đánh đòn vật lý liên tiếp.
