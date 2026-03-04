@@ -1,0 +1,124 @@
+.app-container {
+  display: flex;
+  height: 100vh;
+  background-color: #0b101a;
+  color: white;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.sidebar {
+  width: 300px;
+  background: rgba(11, 16, 26, 0.95);
+  border-right: 2px solid #00f0ff;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.sidebar h2 {
+  color: #00f0ff;
+  text-shadow: 0 0 5px #00f0ff;
+  margin-top: 0;
+}
+
+.btn-primary {
+  background: #00f0ff;
+  color: #000;
+  border: none;
+  padding: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background: #fff;
+  box-shadow: 0 0 10px #00f0ff;
+}
+
+.btn-success {
+  background: #ff3366;
+  color: #fff;
+  border: none;
+  padding: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.btn-small {
+  background: transparent;
+  border: 1px solid #00f0ff;
+  color: #00f0ff;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.btn-small:hover {
+  background: #00f0ff;
+  color: #000;
+}
+
+.map-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.map-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+}
+
+.editor-tools {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.editor-tools label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.editor-tools input,
+.editor-tools select {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid #7b4f3a;
+  color: white;
+  padding: 5px;
+  width: 120px;
+}
+
+hr {
+  border-color: #7b4f3a;
+  width: 100%;
+}
+
+.main-area {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+  background-image:
+    linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+.empty-state {
+  color: #7b4f3a;
+  font-size: 24px;
+  text-shadow: 0 0 5px #7b4f3a;
+}
