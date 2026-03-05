@@ -1,57 +1,52 @@
-# 🗺️ KIẾN TRÚC HỆ THỐNG BẢN ĐỒ (MAP SYSTEM)
+# 🗺️ KIẾN TRÚC HỆ THỐNG BẢN ĐỒ (AUTO-EXPLORATION MAP SYSTEM)
 
-Tài liệu này giải thích chi tiết về cách hệ thống bản đồ trong dự án **Crystallized Iron** đang được cấu trúc, lưu trữ và vận hành từ Backend cho đến các công cụ hiển thị.
-
----
-
-## 1. Cấu trúc Dữ liệu Bản đồ (Data Structure)
-
-Hệ thống Map hiện tại được thiết kế theo dạng **Grid-based Tilemap** (Bản đồ dạng lưới gạch). Mỗi bản đồ không phải là một hình ảnh khổng lồ, mà là một mảng dữ liệu logic, giúp tối ưu bộ nhớ cho cả Server và Client.
-
-Một đối tượng `GameMap` bao gồm các thông số cốt lõi sau:
-- `id`: Mã định danh độc nhất của bản đồ (VD: `zone_12345`).
-- `name`: Tên hiển thị (VD: "Trại Di Cư").
-- `width`: Chiều rộng bản đồ tính bằng số lượng ô (Tile).
-- `height`: Chiều cao bản đồ tính bằng số lượng ô.
-- `tileSize`: Kích thước pixel thực tế vuông của một ô (hiện tại mặc định là `50px`).
-- `layers`: Danh sách các Lớp (Layer) của bản đồ. 
-
-**Tại sao lại dùng Layers?**
-Bản đồ được chia thành nhiều lớp để xử lý các logic khác nhau:
-1. **Background Layer (Visuals):** Lớp nền hiển thị hình ảnh ngói, cỏ, sàn kim loại (Neon Floor). Định nghĩa cái nhìn thấy được nhưng không có tính chất vật lý.
-2. **Collision Layer (Physical/Walls):** Lớp va chạm. Các ô trên lớp này nếu có giá trị `1` sẽ được hệ thống hiểu là "Tường" hoặc "Vật cản" (Obstacle). Các thực thể như Người chơi hoặc Quái vật không thể đi xuyên qua.
-
-*Dữ liệu của mỗi Layer là một mảng 1 chiều (1D Array) với chiều dài bằng `width * height`. Ví dụ: Map 20x15 sẽ có mảng gồm 300 phần tử (chứa các số 0, 1, 2 đại diện cho loại Tile).*
+Tài liệu này giải thích chi tiết về cách hệ thống bản đồ trong dự án **Crystallized Iron** được cấu trúc và vận hành theo hướng IDLE / Text-based RPG.
 
 ---
 
-## 2. Luồng Xử lý Backend (Node.js)
+## 1. Triết lý Thiết kế Bản đồ (Design Philosophy)
 
-Tại Backend, chúng ta có một module **`MapManager.ts`** chịu trách nhiệm quản lý:
-- **In-Memory Storage:** Hiện tại, khi server start, các Map đang được lưu tạm trên RAM (bộ nhớ trong). (*Trong tương lai, phần này sẽ được tích hợp để lưu trực tiếp vào MongoDB dưới dạng Document*).
-- **Default Map:** Khởi tạo sẵn một bản đồ mẫu có viền tường bao quanh khi server vừa chạy để đảm bảo Client có cái để testing ngay.
-- **RESTful API:** Cung cấp 3 endpoint qua Express để giao tiếp với Editor và Client:
-  - `GET /api/maps`: Trả về danh sách tóm tắt tất cả các map hiện có.
-  - `GET /api/maps/:id`: Tải chi tiết một map cụ thể (bao gồm toàn bộ mảng dữ liệu Tile).
-  - `POST /api/maps`: Nhận dữ liệu JSON từ Editor để Lưu/Cập nhật một bản đồ mới vào bộ nhớ.
+Khác với các game MMORPG truyền thống đòi hỏi di chuyển thủ công (WASD/Touch) trên một Tilemap lớn, bản đồ trong Crystallized Iron mang tính **Tượng trưng (Symbolic & Minimalist)**:
+1. **Giao diện Mini-map / Sơ đồ tuyến tính:** Bản đồ hiển thị dưới dạng một sơ đồ khu vực (Area Map) hoán dụ hoặc sơ đồ lưới mạng (Node Graph).
+2. **Đại diện nhân vật:** Nhân vật của người chơi chỉ hiển thị như một "Chấm sáng" (Dot) hoặc một Biểu tượng nhỏ (Avatar Icon) trên sơ đồ này.
+3. **Thám hiểm tự động (Auto-Exploration):** Nhân vật sẽ tự động di chuyển từ điểm này sang điểm khác trên bản đồ theo một tuyến đường định sẵn hoặc ngẫu nhiên (dựa trên thuật toán tìm đường trên đồ thị).
+4. **Không có va chạm vật lý (No Collider):** Do không điều khiển bằng tay, hệ thống sẽ bỏ qua việc tính toán va chạm (Wall/Collision), giúp Server nhẹ hơn gấp nhiều lần.
 
 ---
 
-## 3. Công cụ Thiết kế Map (Map Editor)
+## 2. Cấu trúc Dữ liệu Bản đồ (Data Structure)
 
-Thay vì code tay từng mảng số liệu, hệ thống đi kèm một App riêng (`map_editor` viết bằng React + Vite). Đây là môi trường đồ họa để Level Designer xây dựng thế giới trực quan:
-- **Vòng lặp vẽ (Canvas Rendering):** Editor đọc cấu trúc JSON của Map và dùng HTML5 Canvas để vẽ lên một lưới Grid. Nó lặp qua mảng 1D, quy đổi Index thành tọa độ `(X, Y)` và vẽ màu/icon tương ứng.
-- **Công cụ Paint (Bút vẽ):** Hỗ trợ nhấp và kéo chuột để "tô" các ID Tile (như 0: Tẩy xóa, 1: Tường va chạm, 2: Sàn Neon) lên các Layer khác nhau.
-- **Đồng bộ hóa:** Nút "SAVE MAP TO SERVER" sẽ gom toàn bộ cấu trúc Map hiện tại, biến thành chuỗi JSON và bắn qua API `POST /api/maps` tới Backend.
+Hệ thống Map được thiết kế xoay quanh mô hình **Node & Path (Các Điểm và Đường đi)** thay vì Grid Tilemap.
+
+Một đối tượng `AreaMap` bao gồm:
+- `id`: Mã định danh độc nhất của bản đồ (VD: `area_ruined_city`).
+- `name`: Tên khu vực (VD: "Phế Tích Thiết Tinh").
+- `difficultyLevel`: Mức độ khó chung (quyết định chỉ số quái vật).
+- `nodes`: Mảng chứa các "Điểm đến" (Nodes). Mỗi Node có thể là:
+  - `Trống (Empty)`: Di chuyển an toàn.
+  - `Quái thường (Mob)`: Kích hoạt trận chiến tự động qua Battle Log.
+  - `Sự kiện (Event)`: Nhặt được thẻ rác, rương báu, hoặc cạm bẫy.
+  - `Boss (Thống lĩnh)`: Trận chiến cam go ở cuối bản đồ.
+- `paths`: Mảng các liên kết (Edges/Links) chỉ ra Node nào được nối với Node nào.
 
 ---
 
-## 4. Tích hợp vào Game Client (Hướng đi tiếp theo)
+## 3. Luồng Xử lý Backend (Node.js)
 
-Về mặt khái niệm, khi Web Client hoặc Unity Client kết nối vào Game:
-1. Người chơi đăng nhập và Server xác định họ đang ở `map_id` nào.
-2. Server sẽ báo cho Client biết ID Map.
-3. Client sẽ dùng API RESTful (`GET /api/maps/:id`) để tải gói JSON cấu trúc Map.
-4. Client dựa vào `width`, `height`, `tileSize` và lớp `Background` để render hình ảnh môi trường.
-5. Client dựa vào lớp `Collision` để xây dựng rào chắn vật lý (Collider 2D trong Unity hoặc Logic Boundary chặn tọa độ trong Web Canvas), ngăn nhân vật đi xuyên bản đồ.
-6. Server cũng sở hữu các bản đồ này để xác thực (Validate). Nếu Server thấy Client gửi `MOVE` đi xuyên tường, Server sẽ từ chối và "giật" nhân vật về vị trí hợp lệ cũ (Chống Hack Xuyên Tường).
+Quản lý lộ trình và sự kiện hoàn toàn diễn ra ngầm trên Server:
+
+1. **Khởi tạo chu kỳ (Exploration Loop):** Khi người chơi chọn một Map và ấn "Bắt đầu Thám hiểm", Server gắn ID Map vào State của người chơi.
+2. **Tick Time-based:** Dựa vào chỉ số `Speed` của nhân vật hoặc thời gian quy định (VD: 5 giây/Node), Server đẩy nhân vật qua Node tiếp theo.
+3. **Roll xắc suất:** Tại mỗi Node, Server tung Random Number Generator (RNG) dựa vào bảng thiết kế `Drop Rate` & `Encounter Rate` để quyết định nhân vật sẽ gặp sự kiện gì.
+4. **Tính toán chiến đấu (Headless Combat):** Nếu nhẫm vào Node "Quái", Server lập tức chạy thuật toán so sánh chỉ số (Tấn công phòng thủ) vắng bóng diễn họa, chỉ sinh ra chuỗi JSON kết quả (Text Log Battle). Nhận được đồ vật, hệ thống lưu thẳng vào rương (Database) mà không rơi ra đất.
+5. **Gửi Log về Client:** Qua WebSocket, Server đẩy tệp JSON mô tả "Nhân vật đã đến Node 3, gặp Chuột Đột Biến, mất 120 máu, lụm được Áo Giáp Cháy (1 Sao)" xuống thiết bị (Web/Mobile) để hiển thị thành UI mượt mà.
+
+---
+
+## 4. Giao diện Phía Client (Frontend)
+
+Client (Web H5 / Mobile App) đóng vai trò là chiếc màn hình chiếu lại những gì Backend đã quyết định:
+- **Map rendering:** Vẽ các Node và đường nối bằng SVG hoặc HTML Canvas mượt mà, tĩnh lặng.
+- **Animation đơn giản:** Biểu tượng nhân vật trượt từ Node A sang Node B đính kèm một micro-animation.
+- **Battle Log View:** Một khung Box bên dưới sẽ liên tục xổ ra các dòng tin nhắn text cho người chơi biết chuyện gì đang xảy ra trong chuyến đi.
+- **Chế độ Ngoại tuyến (Offline IDLE):** Kể cả khi Client tắt, khi mở lên lại, Server sẽ gửi một bức tranh tóm tắt số Node đã vượt qua, số đồ đã nhặt được để đưa thẳng vào Inventory.

@@ -15,20 +15,20 @@ Theo cấu trúc trong Backend (`src/types.ts` và `src/Player.ts`), trạng th�
 
 *   **Chỉ số Sinh Tồn & Cốt Lõi:**
     *   `level` (Khoảng 1-100): Cấp độ hiện tại của nhân vật.
-    *   `hp / maxHp`: Lượng Máu (Sức khỏe) hiện tại và tối đa. Mặc định nhân vật level 1 có 100 máu. Khi máu về 0, nhân vật gục ngã và phải hồi sinh.
-    *   `mp / maxMp`: Năng lượng (Mana Points) hiện tại và tối đa. Mặc định ở Level 1 là 50. Năng lượng này sẽ tiêu tốn mỗi khi sử dụng kỹ năng đặc biệt, lao nhanh (Dash).
+    *   `hp / maxHp`: Lượng Máu (Sức khỏe) hiện tại và tối đa. Mặc định nhân vật level 1 có 100 máu. Khi máu trong Log giao tranh về 0, thẻ nhân vật bị ẩn, báo hiệu thua trận.
+    *   `mp / maxMp`: Năng lượng (Mana). Được tiêu tốn để kích hoạt chỉ số ngầm trong các thẻ bài/Kỹ năng đặc biệt ở một vài lượt Text Log nhất định. (Mặc định: `50`)
 
-*   **Chỉ số Giao Tranh (Combat Stats - Quyết định Sát thương):**
-    *   `physicalAttack`: Lực đánh vật lý cơ bản. Được dùng để tính sát thương hệ cận chiến (chém kiếm, đập búa) hoặc đánh xa thuần túy (bắn tên, đạn thực). (Mặc định: `10`)
-    *   `magicAttack`: Lực đánh phép thuật/năng lượng. Được dùng để tính sát thương diện rộng, các loại chưởng tia laser, cầu lửa hoặc độc chất. (Mặc định: `10`)
-    *   `armor`: Giáp. Chỉ số này sẽ giảm lượng sát thương vật lý nhận vào từ kẻ địch. Ví dụ cơ chế giảm sát thương: `Sát Thương Cuối = Sát Thương Đích - Armor`. (Mặc định: `5`)
-    *   `magicResistance`: Kháng phép. Chỉ số này giúp giảm lượng sát thương phép thuật hoặc năng lượng nhận vào từ kỹ năng của quái vật hoặc pháp sư. (Mặc định: `5`)
-    *   `effectResistance`: Kháng hiệu ứng. Mức độ chống chịu lại các hiệu ứng bất lợi (Crowd Control / Tiêu cực) như Choáng (Stun), Trói (Root), Chậm (Slow), Chảy máu. Số này càng to thì thời gian bị dính hiệu ứng càng ngắn hoặc có tỷ lệ miễn nhiễm hoàn toàn. (Mặc định: `0`)
-    *   `critChance`: Tỉ lệ Chí mạng. Giá trị biểu thị bằng tỉ lệ phần trăm từ `0.0` đến `1.0`. (Mặc định: `0.05` tức `5%`). Nếu đòn đánh kích hoạt chí mạng, sát thương gây ra có thể x2 bình thường.
+*   **Chỉ số Giao Tranh (Combat Stats - Quyết định Kết quả Battle Log):**
+    *   `attack` (Tấn công): Lực đánh tổng quát của nhân vật. Lượng sát thương thuần túy dùng tính toán trong Text Log Battle. Mặc định khởi điểm có thể là `10`.
+    *   `defense` (Phòng thủ): Chỉ số chống chịu, cản sát thương. Công thức logic log chiến đấu cơ bản: `Sát Thương Thực = Tấn Công đối phương - Phòng Thủ bản thân`. (Mặc định: `5`)
+    *   `accuracy` (Chính xác): Chỉ số đối trọng với khả năng né tránh của địch. Tính toán tỷ lệ phần trăm ra đòn trúng.
+    *   `evasion` (Né tránh): Khả năng hoàn toàn vô hiệu hóa sát thương một đòn đánh dựa trên chỉ số phần trăm. Tính như sau: `Tỷ lệ đánh trúng = Chính xác đòn tấn công - Né tránh phe thủ`.
+    *   `speed` (Tốc độ): Quyết định ai là người xuất phát đầu tiên trong mỗi Turn của Battle Log. Rất quan trọng ở đấu trường.
+    *   `critChance` (Tỉ lệ Chí mạng): Tỉ lệ xuất hiện bạo kích trên Log (Ví dụ: `0.05` tức `5%`). Sát thương x1.5 hoặc x2.
 
 *   **Chỉ số Phát triển Nâng Cao:**
     *   `exprerience` (Kinh nghiệm - EXP): Lượng kinh nghiệm nhận được khi tiêu diệt quái/boss hay hoàn tất nhiệm vụ.
-    *   `statPoints` (Điểm Chỉ số): Lượng điểm người chơi nhận được khi tăng Cấp độ (+ Level). Có thể dùng số điểm này trong UI để tự cộng vào `HP, MP, Vật lý, Phép thuật, Giáp` nhằm xây dựng "Build" nhân vật riêng (Tanker, Trâu bò, hay Sát Thủ Kính).
+    *   `statPoints` (Điểm Chỉ số): Lượng điểm người chơi nhận được khi tăng Cấp độ (+ Level). Có thể dùng số điểm này trong UI để chủ động nâng cấp `HP, MP, Attack, Defense, Speed` nhằm xây dựng min/max thông số cho thẻ bài của mình.
 
 ---
 

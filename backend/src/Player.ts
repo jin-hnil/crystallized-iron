@@ -1,24 +1,27 @@
 import { WebSocket } from 'ws';
-import type { PlayerState, Vector2 } from './types.js';
+import type { PlayerState } from './types.js';
 
 export class Player {
     public id: string;
     public ws: WebSocket;
     public name: string;
-    public position: Vector2;
     public hp: number;
     public maxHp: number;
     public mp: number;
     public maxMp: number;
     public level: number;
-    public physicalAttack: number;
-    public magicAttack: number;
-    public armor: number;
-    public magicResistance: number;
-    public effectResistance: number;
+    public attack: number;
+    public defense: number;
+    public accuracy: number;
+    public evasion: number;
+    public speed: number;
     public critChance: number;
     public statPoints: number;
-    public experience: number; // Renamed to spell correctly
+    public experience: number;
+
+    // Exploration State
+    public currentMapId: string | undefined;
+    public currentNodeId: string | undefined;
 
     constructor(id: string, ws: WebSocket, name: string) {
         this.id = id;
@@ -26,17 +29,16 @@ export class Player {
         this.name = name;
 
         // Default initial values
-        this.position = { x: 0, y: 0 };
         this.hp = 100;
         this.maxHp = 100;
         this.mp = 50;
         this.maxMp = 50;
         this.level = 1;
-        this.physicalAttack = 10;
-        this.magicAttack = 10;
-        this.armor = 5;
-        this.magicResistance = 5;
-        this.effectResistance = 0;
+        this.attack = 10;
+        this.defense = 5;
+        this.accuracy = 100;
+        this.evasion = 5;
+        this.speed = 10;
         this.critChance = 0.05; // 5% base crit
         this.statPoints = 0;
         this.experience = 0;
@@ -46,20 +48,21 @@ export class Player {
         return {
             id: this.id,
             name: this.name,
-            position: this.position,
             hp: this.hp,
             maxHp: this.maxHp,
             mp: this.mp,
             maxMp: this.maxMp,
             level: this.level,
-            physicalAttack: this.physicalAttack,
-            magicAttack: this.magicAttack,
-            armor: this.armor,
-            magicResistance: this.magicResistance,
-            effectResistance: this.effectResistance,
+            attack: this.attack,
+            defense: this.defense,
+            accuracy: this.accuracy,
+            evasion: this.evasion,
+            speed: this.speed,
             critChance: this.critChance,
             statPoints: this.statPoints,
-            experience: this.experience
+            experience: this.experience,
+            currentMapId: this.currentMapId,
+            currentNodeId: this.currentNodeId,
         };
     }
 
@@ -67,11 +70,6 @@ export class Player {
         if (this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify(message));
         }
-    }
-
-    public updatePosition(x: number, y: number) {
-        this.position.x = x;
-        this.position.y = y;
     }
 
     public getRequiredExp(level: number): number {

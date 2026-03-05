@@ -1,120 +1,109 @@
 # 📄 TÀI LIỆU THIẾT KẾ GAME (GDD): CRYSTALLIZED IRON
 
 ## 1. TỔNG QUAN DỰ ÁN
-- **Tên dự án:** Crystallized Iron
-- **Thể loại:** 2D Top-Down MMORPG (Nhập vai hành động góc nhìn từ trên xuống nhiều người chơi).
-- **Phong cách đồ họa:** Pixel Art / Chibi (Hình ảnh 2D gần gũi, tối ưu phần cứng).
-- **Cốt truyện:** fantasy (Post-apocalyptic Fantasy). Sau sự kiện "Vẫn Thạch Rơi", thế giới bị biến đổi bởi một loại siêu khoáng chất vô định hình mang tên "Crystallized Iron" (Thiết Tinh). Người chơi hóa thân thành các "Kẻ Thức Tỉnh" (Awakeners), chọn gia nhập 1 trong 3 Phe Phái/Hiệp Hội. Bằng cách hấp thụ năng lượng từ Thiết Tinh, người chơi rèn luyện sức mạnh (Sát thương, HP, Năng lượng), chiến đấu với các sinh vật đột biến (Corrupted) và tranh đoạt quyền kiểm soát các "Mỏ Thiết Tinh Vĩnh Cửu" trong những giải đấu liên server.
-- **Nền tảng mục tiêu:** PC (Windows) và Mobile (Android/iOS). Cross-platform cho phép người chơi ở nhiều thiết bị chơi chung server.
+- **Tên dự án (Dự kiến):** Crystallized Iron (Huyền Thoại Chỉ Số / Gear Master Online)
+- **Thể loại:** RPG Chiến thuật tối giản (Text-based / IDLE Management).
+- **Độ tuổi mục tiêu:** 12+ (Phù hợp với lối chơi trí tuệ, ít bạo lực).
+- **Cốt truyện & Bối cảnh:** Thế giới hậu tận thế nơi sức mạnh không đến từ kỹ năng chiến đấu trực tiếp mà đến từ việc khai thác và chế tác cổ vật (Thiết Tinh - Crystallized Iron). Người chơi vào vai một "Nhà sưu tầm" (Collector) đi tìm kiếm các mảnh vỡ lịch sử để phục dựng lại sức mạnh của nhân vật.
+- **Phong cách đồ họa:** Sử dụng hình ảnh 2D tĩnh, phong cách Card-art hoặc Pixel-art tượng trưng. Các trận đánh được hiển thị qua các dòng trạng thái (Log) và sự thay đổi của thanh máu/năng lượng.
+- **Nền tảng mục tiêu:** Web H5, Mobile (Android/iOS).
 - **Mô hình doanh thu định hướng:** Free to Play (Miễn phí tải & chơi) kết hợp In-App Purchase.
 
 ---
 
 ## 2. KIẾN TRÚC KỸ THUẬT (TECH STACK)
-Hệ thống được thiết kế hướng tới khả năng Scale (mở rộng) và Real-time (thời gian thực) mượt mà, phục vụ lượng người chơi lớn với tài nguyên cực kỳ giới hạn (Máy chủ 4GB RAM).
+Hệ thống được thiết kế hướng tới khả năng Scale (mở rộng) và Real-time (thời gian thực) đối với các event server, phục vụ lượng người chơi lớn với tài nguyên cực kỳ giới hạn (Máy chủ 4GB RAM).
 
 ### A. Hạ tầng Server (Phù hợp với 4GB RAM)
-Với 4GB RAM, việc đảm bảo game chịu tải được hệ thống MMO đòi hỏi công nghệ tối ưu cao về bộ nhớ:
+Với 4GB RAM, việc đảm bảo game chịu tải được hệ thống IDLE đòi hỏi công nghệ tối ưu cao dữ liệu tĩnh và bộ đệm:
 - **Backend Chính:** **Node.js** được lựa chọn làm giải pháp phát triển server.
-  - *Lý do:* Hệ sinh thái đa dạng, phát triển nhanh, dồi dào thư viện hỗ trợ WebSocket. Để đảm bảo tính ổn định trên cấu hình giới hạn 4GB RAM, hệ thống áp dụng cơ chế quản lý bộ nhớ cẩn thận và chia tải hợp lý.
-  - *Giới hạn User (CCU - Concurrent Users):* Đặt giới hạn thiết kế 500-1000 người chơi đồng trực tuyến trên mỗi máy chủ nhằm chống thất thoát RAM. Quá ngưỡng này, hệ thống sẽ tự động cân bằng tải và điều hướng luồng người chơi mới sang các cụm server/kênh khác.
-- **Client App:** **Unity (C#)** – Hỗ trợ đa nền tảng PC/Mobile với hệ thống xử lý vật lý 2D, Tilemap mượt mà.
-- **Networking:** **WebSockets (TCP)** – Kết nối hai chiều liên tục, đảm bảo đồng bộ hóa vị trí và trạng thái chiến đấu của nhân vật tức thời (real-time).
+  - *Lý do:* Hệ sinh thái đa dạng, phát triển nhanh. Để đảm bảo tính ổn định trên cấu hình giới hạn, hệ thống áp dụng cơ chế quản lý bộ nhớ cẩn thận và tính toán off-chain khi offline.
+- **Client App:** Chỉ sử dụng công nghệ Frontend Web hiện đại như **React/Vue/Svelte** (chạy trên Desktop Browser hoặc đóng gói PWA/Web-View cho Mobile). Đây là giải pháp tối ưu nhất cho thể loại IDLE Text-based, chạy mượt mà, siêu nhẹ, không cần cài đặt nặng nề, và đặc biệt dễ dàng cập nhật UI/UX liên tục.
+- **Networking:** RESTful API cho các tác vụ tĩnh (trang bị, nâng cấp) kết hợp **WebSockets (TCP)** cho tính năng chat hoặc hoạt động thời gian thực (Đấu giá, Lập log thời gian thực với Boss Thế Giới).
 
 ### B. Chiến lược Cấu trúc Cơ Sở Dữ Liệu (Database & Caching)
-Sử dụng độc lập 1 loại DB (như MongoDB) trong game dễ dẫn đến rủi ro Dupe đồ hoặc chậm trễ. Hệ thống do đó áp dụng mô hình liên kết đặc biệt:
+Sử dụng độc lập 1 loại DB (như MongoDB) trong game nhặt đồ dễ dẫn đến rủi ro Dupe. Hệ thống do đó áp dụng mô hình liên kết đặc biệt:
 
 1. **MySQL (RDBMS - Dữ liệu Cốt lõi Nhạy cảm):**
-   - **Lưu trữ:** Thông tin Tài khoản, Password, Tiền tệ (Credits/Gems), Giao dịch, và Inventory (Hành trang).
-   - **Tác dụng:** Đảm bảo tính toán vẹn ACID. Phòng chống triệt để các lỗi sao chép đồ đạc (Dupe) trong trường hợp crash server đột ngột.
+   - **Lưu trữ:** Thông tin Tài khoản, Tiền tệ (Kim Cương/Vàng), Giao dịch, và Inventory (Hành trang - ID rác, Cổ vật).
+   - **Tác dụng:** Đảm bảo tính toàn vẹn ACID. Mỗi vật phẩm có ID riêng biệt được quản lý chặt trên Database để chống hack/cheat chỉ số.
 2. **MongoDB (NoSQL - Dữ liệu Khối lượng lớn & Động):**
-   - **Lưu trữ:** Log đoạn Chat toàn cầu/riêng tư, Nhật ký tiêu diệt Boss, Thiết lập cấu hình chỉ số Mobs/Quái (có thể nới rộng tùy ý mà không cần sửa Schema).
-   - **Tác dụng:** Đọc/Ghi nhanh và linh động nạp dữ liệu.
+   - **Lưu trữ:** Log đoạn Chat toàn cầu/riêng tư, Nhật ký Log chiến đấu, Thiết lập phân lớp thẻ đồ (các Item Schemas mở rộng ngẫu nhiên).
+   - **Tác dụng:** Đọc/Ghi nhanh dòng phụ (Sub-stats) thay đổi không giới hạn.
 3. **Redis (In-Memory Caching - Dữ liệu Thời gian thực):**
-   - **Lưu trữ:** Tọa độ sống của người chơi (X, Y), Lượng HP/MP hiện tại, Thời gian hồi chiêu (Cooldowns), Phân vùng Map Channels.
-   - **Tác dụng:** Siêu tốc độ, xử lý 100% các dữ liệu biến đổi liên tục trong mili-giây mà không đụng xuống ổ cứng (Disk I/O).
+   - **Lưu trữ:** Bộ đếm thời gian (IDLE countdown) cho người chơi lúc offline/thám hiểm, Cache chỉ số sức mạnh khi load game.
 
 ---
 
 ## 3. CƠ CHẾ GAMEPLAY CỐT LÕI (CORE LOOP)
+Vòng lặp chơi game tập trung vào 3 trụ cột (IDLE Management):
 
-### A. Hệ thống Nhân vật & Chỉ số
-Mỗi nhân vật phát triển thông qua việc tích lũy **Điểm Chỉ số** (nhận được mỗi khi Thăng Cấp). Người chơi có thể tự do phân bổ điểm này để nâng cấp:
-- **HP (Máu):** Khả năng sống sót. Hết HP nhân vật sẽ gục ngã, cần chọn Trạm cứu thương để hồi sinh hoặc dùng vật phẩm phục hồi đặc biệt.
-- **MP (Năng lượng - Mana Points):** Tiêu tốn khi sử dụng kỹ năng đặc biệt hoặc các kỹ thuật di chuyển nâng cao (Lướt/Bay). Tự động hồi phục chậm hoặc dùng thuốc.
-- **Sức đánh Thể chất (Physical Attack):** Lượng sát thương vật lý căn bản dùng trong đòn đánh thường và kỹ năng vật lý cận chiến/bắn cung.
-- **Sức đánh Phép thuật (Magic Attack):** Lượng sát thương tính cho các kỹ năng hệ phép, năng lượng (bắn tia laser, cầu lửa).
-- **Giáp (Armor):** Chỉ số phòng thủ, giảm thiểu lượng sát thương vật lý nhận vào.
-- **Kháng Phép (Magic Resistance):** Giảm sát thương nhận vào từ các kỹ năng phép thuật/năng lượng.
-- **Kháng Hiệu Ứng (Effect Resistance):** Tăng khả năng chống chịu, giảm thời gian hoặc né tránh các trạng thái bất lợi (như choáng, làm chậm, trúng độc).
-- **Chí mạng (Crit Chance):** Tỷ lệ xuất hiện đòn đánh có sát thương đột biến.
+### A. Hệ thống Thám hiểm Tự động (Auto-Exploration Map)
+- **Map Tượng trưng (Minimap/Node Graph):** Bản đồ không còn là một thế giới 2D rộng lớn để di chuyển thủ công. Thay vào đó, nó hiển thị dưới dạng một sơ đồ khu vực (Area Map) hoán dụ hoặc sơ đồ lưới mạng các Điểm (Node Graph) chỉ thị tuyến đường.
+- **Đại diện nhân vật:** Nhân vật của người chơi chỉ hiển thị như một "Chấm nhỏ" (Dot) hoặc một Biểu tượng Đại diện (Avatar Icon) trên sơ đồ chiến thuật này.
+- **Auto-Explore & Gặp gỡ:** Nhân vật sẽ tự động di chuyển từ Node này sang Node khác trên bản đồ theo thời gian thực vòng lặp IDLE. Quá trình di chuyển sẽ gặp ngẫu nhiên Quái vật (Mobs), Cạm bẫy, Rương báu, hoặc Thống lĩnh (Boss) ở các Node đặc biệt để chiến đấu thông qua cơ chế Battle Log.
+- **Hoạt động Ngoại tuyến (Offline Farming):** Ngay cả khi tắt game, máy chủ vẫn tự động tính toán tiến trình rơi đồ và thám hiểm dựa trên sơ đồ Node này.
 
-### B. Hệ thống Bản đồ (Map & Zone)
-- **Cấu trúc Không gian:** Map xây dựng dạng Tilemap nhiều lớp cảnh (Foreground va chạm, Background tĩnh/động).
-- **Cơ chế Zone (Khu/Kênh):** Để chống quá tải Server và tránh tình trạng tranh giành quái quá mức, mỗi Bản đồ (Map) (Ví dụ: Rừng Nấm Đột Biến) sẽ chia thành nhiều "Khu vực" (Khu 1, Khu 2,...). Sức chứa mỗi khu cấu hình động khoảng 15-20 người chơi.
-- **Chuyển bản đồ / Zone:** Nhân vật di chuyển đến cổng dịch chuyển hoặc rìa màn hình sẽ gửi tín hiệu lên Server để đổi map/đổi khu.
-- **Cơ động học:** Tích hợp tính năng lướt (Dash / Roll) để thu hẹp khoảng cách hoặc né đòn, tiêu hao MP thời gian thực.
+### B. Sưu tầm & Phân loại (Collection)
+- Cốt lõi của game là hàng ngàn trang bị/cổ vật dưới dạng Thẻ bài (Item Cards) với các phẩm chất khác nhau (Trắng, Xanh, Tím, Cam, Đỏ).
+- Mỗi món đồ có các dòng chỉ số ngẫu nhiên (Random Stats), tạo động lực cày cuốc không ngừng để min-max nhân vật.
 
-### C. Cơ chế Chiến đấu (Action & Combat)
-- **Cơ bản (Đánh thường):** Chọn mục tiêu (Auto-target kẻ địch gần nhất) và click thủ công hoặc bật chế độ tự động đánh đòn vật lý liên tiếp.
-- **Kỹ Năng (Skill):** Gán slot phím tắt trên PC (1, 2, 3...) hoặc nút kỹ năng trên màn hình Mobile. Hệ thống kỹ năng bao gồm: Bắn tia năng lượng, Đột kích cận chiến, Kỹ năng diện rộng (AoE), Buff sức mạnh.
-- **Quái vật (Entities/Mobs):**
-  - AI Tuần tra: Mob có khu vực di chuyển đặc dụng, quay đầu khi chạm tường hoặc giới hạn patrol.
-  - Aggro (Sự chú ý): Khi người chơi lọt vào vùng thù địch của quái, chúng sẽ chủ động truy đuổi và tấn công.
+### C. Nâng cấp (Progression)
+- Sử dụng các thiết bị, vũ khí "rác" thu thập được từ bước Thám hiểm để làm nguyên liệu Nâng cấp trang bị chính.
+- Tính năng Khảm nạm ngọc (Socketing) vào bộ giáp, vũ khí để tăng chỉ số đột phá.
 
 ---
 
-## 4. HỆ THỐNG TÍNH NĂNG MỞ RỘNG (FEATURES OVERVIEW)
+## 4. CƠ CHẾ CHIẾN ĐẤU (LOGIC-BASED COMBAT)
+Để tránh rắc rối về pháp lý bạo lực, trận đánh sẽ diễn ra theo dạng tính toán Text (Battle Log):
 
-### A. Hệ thống Trang bị & Kho đồ (Inventory)
-- **Loại thiết bị:** Vũ khí chính, Giáp ngực, Giáp chân, Găng tay, Thiết bị cốt lõi (Core Device - thay cho bùa chú/phụ kiện).
-- Trang bị có thể ảnh hưởng đến ngoại hình nhân vật (Visual changes).
-- Tính năng cường hóa: Sử dụng các mảnh "Crystallized Iron" vụn để đập đồ, tăng cấp độ sáng và thêm hiệu ứng hạt (Particles).
-
-### B. Hệ thống Kinh tế & Giao dịch
-- **Tiền tệ:**
-  - *Tín chỉ (Credits):* Tiền thông dụng rớt từ quái/nhiệm vụ. Dùng để sinh hoạt cơ bản, mua thuốc.
-  - *Đá Thiết Tinh (Iron Gems):* Đơn vị cao cấp. Có được từ Nạp thẻ hoặc chuỗi Event khó. Dùng mua Vật phẩm hiếm, Thẻ tháng, Skin.
-- **Giao dịch:** Kênh Chợ Đen phi tập trung (Đấu giá) hoặc tính năng Trade trực tiếp giữa người với người (có xác thực 2 bước để chống lừa đảo).
-
-### C. Gắn kết Xã hội (Social / Party / Guild)
-- **Tổ đội (Party/Squad):** Nhóm tối đa 3-5 người. Chia sẻ điểm kinh nghiệm và hỗ trợ nhau đánh các sinh vật Tinh Anh.
-- **Trò chuyện (Chat):** Chia các kênh: Kênh Toàn Cầu / Kênh Khu Vực / Nhắn Tin Riêng / Kênh Liên Minh.
-- **Liên Minh (Guilds):** Lập quỹ Liên minh, có khu vực Map riêng cho Guild (Guild Base), nâng cấp kiến trúc và tham gia Đại Chiến Liên Minh gặt hái Tinh Thạch.
-
-### D. Nhiệm vụ (Quests System)
-- **Cốt truyện chính (Main Story):** Khám phá bí ẩn về Vẫn Thạch Rơi, nguyên nhân Trái Đất bị biến đổi, chạm trán với các Thống Lĩnh Đột Biến (Boss).
-- **Nhiệm vụ Hàng ngày (Dailies) & Uỷ thác:** Khuyến khích user online bằng các yêu cầu đơn giản như tiêu diệt số lượng quái nhất định, thu thập tài nguyên để nhận thưởng cố định.
+- **Tính toán dựa trên thuộc tính:** Trận đấu là sự so gánh qua lại giữa các chỉ số của hai bên:
+  - `Tấn công vs Phòng thủ = Sát thương thực tế` (Trừ vào máu)
+  - `Chính xác vs Né tránh = Tỷ lệ đánh trúng`
+  - `Tốc độ = Thứ tự hành động quyết định ai ra tay trước trong Log`
+- **Hiển thị (Card-based Text Battle):** Không có hoạt ảnh đâm chém đẫm máu. Trên giao diện, hai tấm thẻ của Nhân vật và Quái vật đại diện đối đầu nhau. Bên dưới là bảng thông báo nhật ký trận đánh.
+- **Log Văn bản:** Kết quả trả về qua text *"Nhân vật A tung đòn bạo kích, gây 300 sát thương vào quái vật B"*.
 
 ---
 
-## 5. UI/UX DESIGN (GIAO DIỆN)
-- **Chiến đấu (HUD):**
-  - Góc trên trái: Trạng thái nhân vật (HP bar máu đỏ, MP bar thứ cấp màu xanh dương, Level).
-  - Góc trên phải: Mini-map, tên khu vực hiện tại và kênh.
-  - Phía dưới/Góc phải: Bảng điều khiển phím ảo cho di chuyển và chùm nút Kỹ năng.
-- **Quy tắc thiết kế:** Sử dụng phong cách Sci-Fi Hologram hoặc viền kim loại rỉ sét để hợp bối cảnh thế giới tương lai/đột biến. Giao diện mờ nhẹ (Opacity) không che khuất tầm nhìn combat.
+## 5. HỆ THỐNG VẬT PHẨM & KINH TẾ
+
+Đây là phần trọng tâm để duy trì tài nguyên game:
+### A. Loại Thẻ Bài Vật Phẩm
+- Thẻ Trang Bị cơ bản chi phối 5 thông số chính: Tấn công, Phòng thủ, Máu (HP), Chính xác, Né tránh. 
+
+### B. Cơ chế Kinh tế
+- **Nguồn gốc vật phẩm:** Chỉ có được từ quá trình Vượt ải, làm nhiệm vụ IDLE hoặc mở Rương quà (Gacha). Rất quan trọng cho giấy kiểm duyệt.
+- **Đơn vị Tiền tệ:**
+  - *Tiền cày cuốc (Vàng):* Trót lọt qua thám hiểm, bán rác. Dùng để chi trả phi nâng cấp, cường hóa.
+  - *Tiền nạp (Kim cương):* Đơn vị nạp cao cấp. Dùng mở rộng số ô kho đồ, mua lượt thám hiểm bỏ qua thời gian (Skip cooldown), hoặc mua Gacha đặc biệt. 
+- **Giao dịch:** Quản trị qua server-side chặt chẽ với cơ sở dữ liệu để ngăn lách luật nhân bản đồ (Dupe items).
 
 ---
 
-## 6. LỘ TRÌNH PHÁT TRIỂN DỰ KIẾN (ROADMAP / MILESTONES)
+## 6. UI/UX DESIGN (GIAO DIỆN)
+- Thiết kế dạng **Sổ tay nhà sưu tầm** (Collector Book Layout), màn hình ngang/dọc dễ nhìn.
+- Trọng tâm giao diện chia làm 2 phần chính:
+  - **Nửa trên (Minimap & Thẻ bài):** Hiển thị Sơ đồ Auto-Exploration (nhân vật là 1 chấm di chuyển qua các node) và Thẻ bài nhân vật tĩnh (Card-Art), kho đồ trực quan.
+  - **Nửa dưới (Box Thông Báo):** Dành trọn vẹn diện tích cho Box thông báo sự kiện (Log Thám hiểm & Chiến đấu).
+- **Màu sắc/Style:** Gam màu giấy da cổ điển / Sci-fi HUD Text (tùy theo mảng concept art sau cùng, thiên về sự logic, tối giản).
 
-* 🔴 **Giai đoạn 1: Prototype (Core Loop & Networking)**
-  * Khởi tạo map Unity 2D Tilemap.
-  * Lập trình di chuyển (Walk/Dash) và Animation cơ bản.
-  * Dựng Backend Node.js + WebSocket: 2-3 Client có thể nhìn thấy nhau di chuyển và chat text với nhau.
+---
 
-* 🟡 **Giai đoạn 2: Vertical Slice (Hoàn thiện Gameplay tĩnh)**
-  * Thêm Mobs di chuyển tự động (AI Patrol).
-  * Chức năng Auto-target, Đánh thường, nhặt Tín Chỉ.
-  * UI Bảng chỉ số nhân vật, bấm cộng Điểm Chỉ số (Tăng HP, MP). Chuyển Map/Zone.
+## 7. LỘ TRÌNH PHÁT TRIỂN (ROADMAP)
 
-* 🟢 **Giai đoạn 3: Alpha Version (Mở rộng quy mô)**
-  * Tổ chức CSDL (MySQL) lưu thông tin Account an toàn.
-  * Hoàn thiện 3 Phe phái với bộ Skill set riêng biệt.
-  * Chợ giao dịch cơ bản, Lập Party. Tích hợp Boss khu vực.
+* 🔴 **Giai đoạn 1: IDLE Core & Giao diện Base**
+  * Viết API đếm ngược thời gian nhặt vật phẩm.
+  * Backend sinh items ngẫu nhiên theo tỷ lệ rớt (Drop Rate). Giới thiệu hệ vàng và kho đồ cơ bản trên Node.js.
 
-* 🔵 **Giai đoạn 4: Beta & Tối Ưu Hóa (Kiểm thử thực tế)**
-  * Áp dụng Redis Caching để chống Lag mạng khi có 1000 người/server.
-  * Cơ chế rào chắn Anti-Cheat, giới hạn rate Request.
-  * Open Beta Test (OBT) thu thập phản hồi của nhóm người dùng đầu tiên. Phát hành chính thức.
+* 🟡 **Giai đoạn 2: Combat Logic (Log-based) & Cards**
+  * Xây dựng công thức (Tấn công vs Phòng thủ) trả kết quả JSON về font-end.
+  * Hiển thị bảng mô phỏng Trận đánh bằng Text Log. Cơ chế thẻ bài tĩnh mặt trước/sau.
+
+* 🟢 **Giai đoạn 3: Nâng cấp, Khảm nạm**
+  * Tạo tính năng ép cấp (Enhance) nuốt thẻ rác để nâng thẻ chính.
+  * Bổ sung tính chỉ số phụ + % theo hệ ngọc khảm.
+
+* 🔵 **Giai đoạn 4: Beta (Kinh tế & Thương mại hóa)**
+  * Tích hợp Cash-shop (Kim cương) để skip time và mua tài nguyên mở rộng Kho đồ.
+  * Thử nghiệm giới hạn với user lớn để tải trọng Redis đếm IDLE countdown không bị delay.

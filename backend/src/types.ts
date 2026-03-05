@@ -5,19 +5,25 @@ export interface Vector2 {
 
 export enum ClientEventType {
     JOIN = "JOIN",
-    MOVE = "MOVE",
     CHAT = "CHAT",
-    LEAVE = "LEAVE"
+    LEAVE = "LEAVE",
+    START_EXPLORE = "START_EXPLORE",
+    STOP_EXPLORE = "STOP_EXPLORE",
+    GET_MAPS = "GET_MAPS"
 }
 
 export enum ServerEventType {
     INIT_STATE = "INIT_STATE",
     PLAYER_JOINED = "PLAYER_JOINED",
-    PLAYER_MOVED = "PLAYER_MOVED",
     PLAYER_LEFT = "PLAYER_LEFT",
     CHAT_MESSAGE = "CHAT_MESSAGE",
     ERROR = "ERROR",
-    SERVER_FULL = "SERVER_FULL"
+    SERVER_FULL = "SERVER_FULL",
+    MAP_LIST = "MAP_LIST",
+    MAP_DATA = "MAP_DATA",
+    EXPLORE_NODE = "EXPLORE_NODE",
+    EXPLORE_STOPPED = "EXPLORE_STOPPED",
+    PLAYER_DEATH = "PLAYER_DEATH"
 }
 
 export interface ClientMessage {
@@ -33,7 +39,6 @@ export interface ServerMessage {
 export interface PlayerState {
     id: string;
     name: string;
-    position: Vector2;
     // Core Base Stats
     level: number;
     hp: number;
@@ -42,14 +47,18 @@ export interface PlayerState {
     maxMp: number;
 
     // Combat Stats (derived or allocated)
-    physicalAttack: number; // Sát thương vật lý
-    magicAttack: number; // Sát thương phép thuật
-    armor: number; // Defense/Damage Reduction
-    magicResistance: number; // Reduces magic damage
-    effectResistance: number; // Reduces chance/duration of status ailments
-    critChance: number; // 0.0 to 1.0 representing percentage
+    attack: number;
+    defense: number;
+    accuracy: number;
+    evasion: number;
+    speed: number;
+    critChance: number;
 
     // Growth
-    statPoints: number; // Points to distribute
+    statPoints: number;
     experience: number;
+
+    // Exploration state
+    currentMapId?: string | undefined;
+    currentNodeId?: string | undefined;
 }

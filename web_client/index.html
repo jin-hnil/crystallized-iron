@@ -47,18 +47,17 @@
     <!-- Game Canvas -->
     <canvas id="game-canvas"></canvas>
 
-    <!-- Chat System -->
-    <div id="chat-system">
-      <div id="chat-messages"></div>
-      <div class="chat-input-area">
-        <input type="text" id="chat-input" placeholder="Type here..." />
+    <!-- Log System (Chat & Battle Logs) -->
+    <div id="log-system">
+      <div class="log-tabs">
+        <button id="tab-battle" class="active">Battle Log</button>
+        <button id="tab-chat">World Chat</button>
+      </div>
+      <div id="log-messages"></div>
+      <div class="chat-input-area" id="chat-input-area" style="display: none;">
+        <input type="text" id="chat-input" placeholder="Enter message..." />
         <button id="send-chat-btn">Send</button>
       </div>
-    </div>
-
-    <!-- Controls -->
-    <div id="controls-hint">
-      WASD/Arrows/Right-click to Move | Enter to Chat
     </div>
   </div>
   <script type="module" src="/src/main.ts"></script>
