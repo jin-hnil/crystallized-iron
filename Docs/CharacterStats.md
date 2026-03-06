@@ -11,7 +11,8 @@ Theo cấu trúc trong Backend (`src/types.ts` và `src/Player.ts`), trạng th�
 *   **Định danh cơ bản:**
     *   `id` (String): Mã định danh (UUIDv4) của mỗi user kết nối.
     *   `name` (String): Tên hiển thị trên đầu nhân vật.
-    *   `position`: Tọa độ `X, Y` mà nhân vật đang đứng trong Tilemap.
+    *   `currentMapId`: ID của bản đồ (Node Graph) mà nhân vật đang thám hiểm.
+    *   `currentNodeId`: ID của Node hiện tại trên bản đồ.
 
 *   **Chỉ số Sinh Tồn & Cốt Lõi:**
     *   `level` (Khoảng 1-100): Cấp độ hiện tại của nhân vật.
@@ -24,10 +25,14 @@ Theo cấu trúc trong Backend (`src/types.ts` và `src/Player.ts`), trạng th�
     *   `accuracy` (Chính xác): Chỉ số đối trọng với khả năng né tránh của địch. Tính toán tỷ lệ phần trăm ra đòn trúng.
     *   `evasion` (Né tránh): Khả năng hoàn toàn vô hiệu hóa sát thương một đòn đánh dựa trên chỉ số phần trăm. Tính như sau: `Tỷ lệ đánh trúng = Chính xác đòn tấn công - Né tránh phe thủ`.
     *   `speed` (Tốc độ): Quyết định ai là người xuất phát đầu tiên trong mỗi Turn của Battle Log. Rất quan trọng ở đấu trường.
-    *   `critChance` (Tỉ lệ Chí mạng): Tỉ lệ xuất hiện bạo kích trên Log (Ví dụ: `0.05` tức `5%`). Sát thương x1.5 hoặc x2.
+    *   `critChance` (Tỉ lệ Chí mạng): Tỉ lệ xuất hiện bạo kích trên Log (Ví dụ: `0.05` tức `5%`). Sát thương ×1.8.
+
+*   **Chỉ số Kháng Tính:**
+    *   `magicResistance` (Kháng phép): Giảm sát thương phép thuật nhận vào. (Mặc định: `0`)
+    *   `effectResistance` (Kháng hiệu ứng): Giảm tỷ lệ dính hiệu ứng bất lợi (debuff). (Mặc định: `0`)
 
 *   **Chỉ số Phát triển Nâng Cao:**
-    *   `exprerience` (Kinh nghiệm - EXP): Lượng kinh nghiệm nhận được khi tiêu diệt quái/boss hay hoàn tất nhiệm vụ.
+    *   `experience` (Kinh nghiệm - EXP): Lượng kinh nghiệm nhận được khi tiêu diệt quái/boss hay hoàn tất nhiệm vụ.
     *   `statPoints` (Điểm Chỉ số): Lượng điểm người chơi nhận được khi tăng Cấp độ (+ Level). Có thể dùng số điểm này trong UI để chủ động nâng cấp `HP, MP, Attack, Defense, Speed` nhằm xây dựng min/max thông số cho thẻ bài của mình.
 
 ---
@@ -37,7 +42,7 @@ Theo cấu trúc trong Backend (`src/types.ts` và `src/Player.ts`), trạng th�
 Hệ thống chỉ số đang áp dụng mô hình **Authoritative Server** (Máy chủ uy quyền):
 1. Mọi chỉ số của nhân vật đều được lưu trữ và tính toán hoàn toàn nằm trên Code Backend Node.js (trong Class `Player`).
 2. Mọi diễn biến tăng hay giảm HP, MP đều do logic trên máy chủ quyết định chứ không phải Client.
-3. Client (như Unity / Web) chỉ biết được bức tranh toàn cảnh khi thông điệp `INIT_STATE` (Lúc bắt đầu vào game) hoặc bản tin đồng bộ định kỳ được truyền đến. Do vậy, việc hack chỉnh sửa máu 99999 từ Web Client/Local memory sẽ trở nên vô nghĩa, giúp trò chơi MMORPG giữ tính công bằng tuyệt đối.
+3. Client (Web H5) chỉ biết được bức tranh toàn cảnh khi thông điệp `INIT_STATE` (Lúc bắt đầu vào game) hoặc bản tin đồng bộ định kỳ được truyền đến. Do vậy, việc hack chỉnh sửa máu 99999 từ Web Client/Local memory sẽ trở nên vô nghĩa, giúp trò chơi giữ tính công bằng tuyệt đối.
 
 ---
 
@@ -47,3 +52,11 @@ Sắp tới, cấu trúc này có thể mở rộng bổ sung trực tiếp trê
 - **`attackSpeed`:** Tốc độ ra đòn đánh.
 - **`moveSpeed`:** Tốc độ bước chạy/di chuyển của nhân vật (Buff tùy theo trang bị).
 - **Trạng Thái Hiệu Ứng (Status Ailments):** Bổ sung array/object về các hiệu ứng Trúng Độc (`Poison`), Cháy (`Burn`), Giảm phòng thủ đang có thời hạn trên người.
+
+---
+
+## 4. Tài liệu liên quan
+
+- [CombatSystem.md](CombatSystem.md) - Công thức chiến đấu sử dụng các chỉ số này
+- [LevelingSystem.md](LevelingSystem.md) - Hệ thống cấp độ & phân bổ stat points
+- [ItemSystem.md](ItemSystem.md) - Trang bị ảnh hưởng chỉ số nhân vật

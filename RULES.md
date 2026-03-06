@@ -3,20 +3,31 @@
 
 ---
 
-## 1. TỔNG QUAN DỰ ÁN
+## 🎯 TRẠNG THÁI CÔNG VIỆC (ĐÁNH DẤU [x] VÀO MỤC ĐANG LÀM)
 
-- **Tên dự án:** Crystallized Iron
-- **Thể loại:** RPG Chiến thuật tối giản (Text-based / IDLE Management)
-- **KHÔNG PHẢI** game hành động, KHÔNG CÓ hoạt ảnh chiến đấu, KHÔNG di chuyển thủ công
-- **Đồ họa:** 2D tĩnh, Card-art / Pixel-art tượng trưng
-- **Nền tảng:** Web H5 (chỉ Web Client, KHÔNG dùng Unity)
-- **Độ tuổi:** 12+ (ít bạo lực, không đẫm máu)
+> **Hướng dẫn:** Đánh dấu `[x]` vào (các) mục bạn muốn AI thực hiện.
+> AI **CHỈ ĐƯỢC LÀM** những mục được đánh dấu, **KHÔNG LÀM** mục chưa đánh dấu.
+
+### Phạm vi công việc:
+- [ ] 💻 **Code** — Viết code, sửa code, thêm tính năng
+- [ ] 🔍 **Review Code** — Chỉ đọc và review code, đưa ra nhận xét, KHÔNG sửa code
+- [x] 📐 **Viết thiết kế** — Tạo/sửa file thiết kế trong `Docs/`, KHÔNG code
+- [ ] 🐛 **Sửa bug** — Tìm và sửa lỗi trong code hiện tại
+- [ ] 🧹 **Refactor** — Tái cấu trúc code, cải thiện chất lượng, KHÔNG thêm tính năng mới
+- [ ] 📖 **Tài liệu** — Viết/cập nhật README, comment, tài liệu hướng dẫn
+- [ ] ❓ **Tư vấn** — Chỉ trả lời câu hỏi, giải thích, KHÔNG sửa bất kỳ file nào
+
+### Phạm vi hệ thống (nếu cần giới hạn):
+- [ ] Backend
+- [ ] Frontend (Web Client)
+- [ ] Database
+- [ ] Admin Panel
+- [x] Toàn bộ dự án
 
 ---
 
-## 2. KIẾN TRÚC KỸ THUẬT
+## 1. CÔNG NGHỆ (TECH STACK)
 
-### Stack bắt buộc:
 | Thành phần | Công nghệ | Ghi chú |
 |------------|-----------|---------|
 | Backend | Node.js + TypeScript | Server 4GB RAM |
@@ -25,93 +36,55 @@
 | Database phụ | MongoDB | Log, config, template |
 | Cache | Redis | Countdown IDLE, session |
 | Networking | REST API + WebSocket | REST cho tĩnh, WS cho realtime |
+| Admin Panel | React + TypeScript + Vite | CHỈ chạy trên localhost |
 
-### Quy tắc code:
-- TypeScript strict mode (`strict: true` trong tsconfig)
+---
+
+## 2. CÁCH LÀM VIỆC
+
+- **Thể loại game:** RPG Chiến thuật tối giản (Text-based / IDLE Management)
+- **KHÔNG PHẢI** game hành động, KHÔNG CÓ hoạt ảnh chiến đấu, KHÔNG di chuyển thủ công
+- **Đồ họa:** 2D tĩnh, Card-art / Pixel-art tượng trưng
+- **Nền tảng:** Web H5 (chỉ Web Client)
+- **Mô hình:** Server Authoritative - mọi tính toán logic trên Server
+- Trước khi code bất kỳ hệ thống nào, **đọc file thiết kế tương ứng** trong `Docs/`
+
+---
+
+## 3. QUY TẮC VIẾT CODE
+
+### TypeScript
+- Strict mode bắt buộc (`strict: true` trong tsconfig)
 - Mọi file `.ts` phải pass `tsc --noEmit` trước khi commit
-- Không dùng `any` trừ khi bắt buộc (payload từ WebSocket)
+- **KHÔNG** dùng `any` trừ khi bắt buộc (payload từ WebSocket)
 - Comment bằng tiếng Việt hoặc tiếng Anh đều được
 
----
+### Naming Convention
+- File: PascalCase (VD: `GameServer.ts`, `MapManager.ts`)
+- Interface/Type: PascalCase (VD: `PlayerState`, `ItemTemplate`)
+- Biến/hàm: camelCase (VD: `getPlayerById`, `currentHp`)
+- Constant: UPPER_SNAKE_CASE (VD: `MAX_LEVEL`, `TICK_INTERVAL`)
 
-## 3. HỆ THỐNG CHIẾN ĐẤU
-
-### PHẢI tuân thủ:
-- Chiến đấu = **Text Log** (nhật ký văn bản), KHÔNG có hoạt ảnh
-- Kết quả trận đánh tính toán hoàn toàn trên **Server** (Authoritative)
-- Client chỉ **hiển thị** kết quả, KHÔNG được tính toán damage
-
-### Công thức cơ bản:
-```
-Sát thương thực tế = max(1, Tấn công - Phòng thủ) × random(0.8, 1.2)
-Chí mạng = Sát thương × 1.8 (nếu roll < critChance)
-Tỷ lệ đánh trúng = Chính xác tấn công - Né tránh phòng thủ
-Thứ tự hành động = So sánh Speed, cao hơn đánh trước
-```
-
-### 6 chỉ số chiến đấu:
-| Chỉ số | Field name | Mặc định Lv.1 |
-|--------|-----------|---------------|
-| Tấn công | `attack` | 10 |
-| Phòng thủ | `defense` | 5 |
-| Chính xác | `accuracy` | 100 |
-| Né tránh | `evasion` | 5 |
-| Tốc độ | `speed` | 10 |
-| Chí mạng | `critChance` | 0.05 (5%) |
+### Database
+- Dữ liệu nhạy cảm (tài khoản, tiền, inventory) → **MySQL**
+- Dữ liệu động, khối lượng lớn (log, template, config) → **MongoDB**
+- Cache realtime (countdown, session) → **Redis**
+- Mọi thao tác tiền tệ **PHẢI** dùng MySQL Transaction
 
 ---
 
-## 4. HỆ THỐNG BẢN ĐỒ
+## 4. QUY TẮC BẢO MẬT
 
-### PHẢI tuân thủ:
-- Bản đồ = **Node Graph** (đồ thị điểm nối), KHÔNG phải Tilemap
-- Nhân vật hiển thị = **Chấm nhỏ / Avatar icon** trên minimap
-- Thám hiểm = **Tự động (Auto-Explore)**, KHÔNG điều khiển tay
-- Mỗi Node có type: `empty` | `mob` | `boss` | `treasure` | `event`
-- Server tick mỗi ~4 giây đẩy nhân vật sang Node tiếp theo
-
-### KHÔNG ĐƯỢC:
-- ❌ Tạo tilemap grid ô vuông
-- ❌ Cho phép người chơi di chuyển WASD/Arrow
-- ❌ Xây dựng hệ thống va chạm (Collision)
-
----
-
-## 5. HỆ THỐNG VẬT PHẨM
-
-### Quy tắc cốt lõi:
+- **Server Authoritative:** Mọi tính toán chiến đấu, kinh tế, chỉ số NẰM TRÊN SERVER
+- Client chỉ **hiển thị** kết quả, KHÔNG được tính toán damage hay thay đổi chỉ số
+- Mọi thay đổi tiền tệ **PHẢI** ghi vào bảng `transactions` (audit trail)
 - Mỗi vật phẩm có **ID duy nhất** trong MySQL (chống Dupe)
-- Template vật phẩm lưu trong **MongoDB** (`item_templates`)
-- Instance vật phẩm (đã roll stats) lưu trong **MySQL** (`inventory`)
-- Chỉ số phụ (Sub-stats) **ngẫu nhiên** khi sinh ra
-
-### Phẩm chất:
-| Màu | Độ hiếm | Số dòng phụ |
-|-----|---------|-------------|
-| ⬜ Trắng | 1★ | 0-1 |
-| 🟦 Xanh | 2★ | 1-2 |
-| 🟪 Tím | 3★ | 2-3 |
-| 🟧 Cam | 4★ | 3 |
-| 🟥 Đỏ | 5★ | 3-4 |
-| 🌟 Huyền thoại | 6★ | 4 |
+- Admin Panel **CHỈ** truy cập được từ `localhost` trên server
+- KHÔNG tin bất kỳ dữ liệu nào từ Client → luôn validate trên Server
 
 ---
 
-## 6. HỆ THỐNG TIỀN TỆ
-
-| Loại | Tên | Nguồn | Dùng để |
-|------|-----|-------|---------|
-| Cày cuốc | Vàng (Gold) | Thám hiểm, bán đồ | Cường hóa, nâng cấp |
-| Nạp tiền | Kim Cương (Diamonds) | IAP, event | Skip time, Gacha, mở rộng kho |
-
-### Quy tắc giao dịch:
-- MỌI thay đổi tiền tệ PHẢI ghi vào bảng `transactions`
-- MỌI thao tác tiền PHẢI nằm trong MySQL Transaction (START/COMMIT)
-- KHÔNG ĐƯỢC trừ tiền nếu số dư không đủ
-
----
-
-## 7. GIAO DIỆN (UI/UX)
+## 5. GIAO DIỆN (UI/UX)
 
 ### Layout chính:
 - **Nửa trên:** Minimap Node Graph + Thẻ bài nhân vật (Card-Art)
@@ -125,23 +98,22 @@ Thứ tự hành động = So sánh Speed, cao hơn đánh trước
 - Màu chủ đạo: Neon blue `#00f0ff`, Neo-red `#ff3366`
 - Background tối `#0b101a`
 
-### KHÔNG ĐƯỢC:
-- ❌ Tạo giao diện giống game hành động (skill bar, joystick)
-- ❌ Sử dụng font serif hoặc font quá fancy
-- ❌ Màu sắc sặc sỡ không theo palette
-
 ---
 
-## 8. CẤU TRÚC THƯ MỤC
+## 6. CẤU TRÚC THƯ MỤC
 
 ```
 Crystallized Iron/
-├── RULES.md                    ← ⚠️ FILE NÀY - ĐỌC TRƯỚC
-├── Crystallized_Iron_GDD.md    ← Tài liệu thiết kế game
-├── Docs/                       ← Tài liệu kỹ thuật chi tiết
-│   ├── CharacterStats.md
-│   ├── MapSystem_Architecture.md
-│   └── LevelingSystem.md
+├── RULES.md                    ← ⚠️ FILE NÀY - QUY TẮC DỰ ÁN
+├── Crystallized_Iron_GDD.md    ← Tài liệu thiết kế game tổng quan
+├── Docs/                       ← Tài liệu thiết kế hệ thống chi tiết
+│   ├── SystemOverview.md       ← ⭐ Tổng quan toàn bộ hệ thống
+│   ├── CharacterStats.md       ← Chỉ số nhân vật
+│   ├── CombatSystem.md         ← Hệ thống chiến đấu
+│   ├── MapSystem_Architecture.md ← Hệ thống bản đồ
+│   ├── ItemSystem.md           ← Hệ thống vật phẩm
+│   ├── CurrencySystem.md       ← Hệ thống tiền tệ
+│   └── LevelingSystem.md       ← Hệ thống cấp độ
 ├── backend/                    ← Node.js Server
 │   └── src/
 │       ├── index.ts            ← Entry point
@@ -158,27 +130,53 @@ Crystallized Iron/
 │       └── style.css
 ├── database/
 │   ├── mysql/
-│   │   ├── schema.sql          ← 6 bảng MySQL
+│   │   ├── schema.sql          ← Bảng MySQL
 │   │   └── README.md
 │   └── mongodb/
-│       ├── schemas.js          ← 6 collections MongoDB
+│       ├── schemas.js          ← Collections MongoDB
 │       └── README.md
 └── admin_panel/                ← Bảng quản trị Admin (CHỈ localhost)
 ```
 
 ---
 
-## 9. QUY TRÌNH LÀM VIỆC
+## 7. QUY TRÌNH LÀM VIỆC
 
-1. **Trước khi code:** Đọc file `RULES.md` này
-2. **Trước khi sửa chỉ số:** Kiểm tra `Docs/CharacterStats.md`
-3. **Trước khi sửa map:** Kiểm tra `Docs/MapSystem_Architecture.md`
-4. **Sau khi code:** Chạy `npx tsc --noEmit` ở cả `backend/` và `web_client/`
-5. **Trước khi commit:** Đảm bảo không có lỗi TypeScript
+### Bước 1: Đọc quy tắc
+- Đọc file `RULES.md` này để nắm rõ các quy tắc bắt buộc
+
+### Bước 2: Đọc bản thiết kế liên quan
+- Xác định công việc liên quan đến hệ thống nào
+- Đọc file thiết kế tương ứng trong `Docs/`:
+
+| Hệ thống | File thiết kế |
+|-----------|--------------|
+| Tổng quan hệ thống | `Docs/SystemOverview.md` |
+| Chỉ số nhân vật | `Docs/CharacterStats.md` |
+| Chiến đấu | `Docs/CombatSystem.md` |
+| Bản đồ | `Docs/MapSystem_Architecture.md` |
+| Vật phẩm | `Docs/ItemSystem.md` |
+| Tiền tệ | `Docs/CurrencySystem.md` |
+| Cấp độ | `Docs/LevelingSystem.md` |
+
+### Bước 3: Cập nhật bản thiết kế (nếu cần)
+- Nếu công việc yêu cầu **thay đổi thiết kế** (thêm/sửa/xóa tính năng, công thức, chỉ số...):
+  1. **Sửa file thiết kế trước** trong `Docs/` cho khớp với mục tiêu mới
+  2. **Thông báo cho user** những gì đã sửa trên bản thiết kế
+  3. Chờ user xác nhận rồi mới tiến hành code
+- Nếu là **hệ thống hoàn toàn mới**: Tạo file thiết kế riêng trong `Docs/` trước khi code
+
+### Bước 4: Code
+- Triển khai code theo đúng bản thiết kế đã được xác nhận
+- Tuân thủ mọi quy tắc viết code ở mục 3
+
+### Bước 5: Kiểm tra
+- Chạy `npx tsc --noEmit` ở cả `backend/`, `web_client/`, và `admin_panel/`
+- Đảm bảo không có lỗi TypeScript trước khi commit
 
 ---
 
-## 10. ĐIỀU CẤM KỴ (TUYỆT ĐỐI KHÔNG LÀM)
+## 8. NHỮNG ĐIỀU KHÔNG LÀM (TUYỆT ĐỐI CẤM)
 
 | # | Điều cấm | Lý do |
 |---|----------|-------|
@@ -191,3 +189,7 @@ Crystallized Iron/
 | 7 | ❌ Dùng `any` type tràn lan | TypeScript strict |
 | 8 | ❌ Commit code lỗi tsc | Phải pass noEmit trước |
 | 9 | ❌ Tự chạy dev server / process ngầm | Chỉ đưa ra lệnh, để người dùng tự chạy |
+| 10 | ❌ Tạo giao diện giống game hành động | Không skill bar, joystick |
+| 11 | ❌ Sử dụng font serif hoặc quá fancy | Chỉ dùng monospace |
+| 12 | ❌ Màu sắc sặc sỡ không theo palette | Tuân thủ color scheme |
+| 13 | ❌ Ghi thiết kế hệ thống vào RULES.md | Thiết kế đặt trong Docs/ |

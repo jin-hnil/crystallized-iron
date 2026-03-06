@@ -40,3 +40,12 @@ Ngay khi User giết quái và biến `experience` vượt ngưỡng hoặc bằ
 So với kiểu khai báo cấu trúc số lượng khổng lồ `BigInt`, công thức giới hạn XP cần để lên 100 hiện tại chỉ mất khoảng `~10 triệu XP`. Và tổng số XP tích lũy toàn Game trong Vòng Đời 1 nhân vật đến Max level chỉ nằm dưới `1 Tỷ XP`. 
 
 Khối lượng này hoàn toàn nằm an toàn trong giới hạn của chuẩn biến hệ `number` (Int32 / Int64) mặc định trong JavaScript và MySQL. Nhờ đó, máy chủ RAM 4GB của bạn sẽ xử lý rất "mượt" các bước Check While vòng lặp Thăng cấp cho hàng ngàn người chơi mà bị đầy Disk.
+
+---
+
+## 5. Tài liệu liên quan
+
+- [CharacterStats.md](CharacterStats.md) - Chỉ số nhân vật (nhận stat points khi lên cấp)
+- [CombatSystem.md](CombatSystem.md) - Chiến đấu (nguồn EXP chính)
+- [MapSystem_Architecture.md](MapSystem_Architecture.md) - Thám hiểm (nơi kiếm EXP)
+

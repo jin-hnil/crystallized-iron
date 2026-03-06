@@ -25,7 +25,8 @@ Một đối tượng `AreaMap` bao gồm:
 - `nodes`: Mảng chứa các "Điểm đến" (Nodes). Mỗi Node có thể là:
   - `Trống (Empty)`: Di chuyển an toàn.
   - `Quái thường (Mob)`: Kích hoạt trận chiến tự động qua Battle Log.
-  - `Sự kiện (Event)`: Nhặt được thẻ rác, rương báu, hoặc cạm bẫy.
+  - `Rương báu (Treasure)`: Nhặt được vật phẩm, tài nguyên.
+  - `Sự kiện (Event)`: Cạm bẫy, gặp NPC, hoặc sự kiện ngẫu nhiên.
   - `Boss (Thống lĩnh)`: Trận chiến cam go ở cuối bản đồ.
 - `paths`: Mảng các liên kết (Edges/Links) chỉ ra Node nào được nối với Node nào.
 
@@ -36,7 +37,7 @@ Một đối tượng `AreaMap` bao gồm:
 Quản lý lộ trình và sự kiện hoàn toàn diễn ra ngầm trên Server:
 
 1. **Khởi tạo chu kỳ (Exploration Loop):** Khi người chơi chọn một Map và ấn "Bắt đầu Thám hiểm", Server gắn ID Map vào State của người chơi.
-2. **Tick Time-based:** Dựa vào chỉ số `Speed` của nhân vật hoặc thời gian quy định (VD: 5 giây/Node), Server đẩy nhân vật qua Node tiếp theo.
+2. **Tick Time-based:** Dựa vào chỉ số `Speed` của nhân vật hoặc thời gian quy định (mặc định ~4 giây/Node), Server đẩy nhân vật qua Node tiếp theo.
 3. **Roll xắc suất:** Tại mỗi Node, Server tung Random Number Generator (RNG) dựa vào bảng thiết kế `Drop Rate` & `Encounter Rate` để quyết định nhân vật sẽ gặp sự kiện gì.
 4. **Tính toán chiến đấu (Headless Combat):** Nếu nhẫm vào Node "Quái", Server lập tức chạy thuật toán so sánh chỉ số (Tấn công phòng thủ) vắng bóng diễn họa, chỉ sinh ra chuỗi JSON kết quả (Text Log Battle). Nhận được đồ vật, hệ thống lưu thẳng vào rương (Database) mà không rơi ra đất.
 5. **Gửi Log về Client:** Qua WebSocket, Server đẩy tệp JSON mô tả "Nhân vật đã đến Node 3, gặp Chuột Đột Biến, mất 120 máu, lụm được Áo Giáp Cháy (1 Sao)" xuống thiết bị (Web/Mobile) để hiển thị thành UI mượt mà.
@@ -45,8 +46,16 @@ Quản lý lộ trình và sự kiện hoàn toàn diễn ra ngầm trên Server
 
 ## 4. Giao diện Phía Client (Frontend)
 
-Client (Web H5 / Mobile App) đóng vai trò là chiếc màn hình chiếu lại những gì Backend đã quyết định:
+Client (Web H5) đóng vai trò là chiếc màn hình chiếu lại những gì Backend đã quyết định:
 - **Map rendering:** Vẽ các Node và đường nối bằng SVG hoặc HTML Canvas mượt mà, tĩnh lặng.
 - **Animation đơn giản:** Biểu tượng nhân vật trượt từ Node A sang Node B đính kèm một micro-animation.
 - **Battle Log View:** Một khung Box bên dưới sẽ liên tục xổ ra các dòng tin nhắn text cho người chơi biết chuyện gì đang xảy ra trong chuyến đi.
 - **Chế độ Ngoại tuyến (Offline IDLE):** Kể cả khi Client tắt, khi mở lên lại, Server sẽ gửi một bức tranh tóm tắt số Node đã vượt qua, số đồ đã nhặt được để đưa thẳng vào Inventory.
+
+---
+
+## 5. Tài liệu liên quan
+
+- [CombatSystem.md](CombatSystem.md) - Chiến đấu xảy ra tại các Node mob/boss
+- [CharacterStats.md](CharacterStats.md) - Chỉ số nhân vật (ảnh hưởng speed thám hiểm)
+- [ItemSystem.md](ItemSystem.md) - Vật phẩm nhặt được từ thám hiểm
