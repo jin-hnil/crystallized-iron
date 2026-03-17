@@ -1,61 +1,27 @@
-# 🗺️ KIẾN TRÚC HỆ THỐNG BẢN ĐỒ (AUTO-EXPLORATION MAP SYSTEM)
+# 🗺️ KIẾN TRÚC HỆ THỐNG BẢN ĐỒ 3D (ZONES & TERRAIN)
 
-Tài liệu này giải thích chi tiết về cách hệ thống bản đồ trong dự án **Crystallized Iron** được cấu trúc và vận hành theo hướng IDLE / Text-based RPG.
-
----
-
-## 1. Triết lý Thiết kế Bản đồ (Design Philosophy)
-
-Khác với các game MMORPG truyền thống đòi hỏi di chuyển thủ công (WASD/Touch) trên một Tilemap lớn, bản đồ trong Crystallized Iron mang tính **Tượng trưng (Symbolic & Minimalist)**:
-1. **Giao diện Mini-map / Sơ đồ tuyến tính:** Bản đồ hiển thị dưới dạng một sơ đồ khu vực (Area Map) hoán dụ hoặc sơ đồ lưới mạng (Node Graph).
-2. **Đại diện nhân vật:** Nhân vật của người chơi chỉ hiển thị như một "Chấm sáng" (Dot) hoặc một Biểu tượng nhỏ (Avatar Icon) trên sơ đồ này.
-3. **Thám hiểm tự động (Auto-Exploration):** Nhân vật sẽ tự động di chuyển từ điểm này sang điểm khác trên bản đồ theo một tuyến đường định sẵn hoặc ngẫu nhiên (dựa trên thuật toán tìm đường trên đồ thị).
-4. **Không có va chạm vật lý (No Collider):** Do không điều khiển bằng tay, hệ thống sẽ bỏ qua việc tính toán va chạm (Wall/Collision), giúp Server nhẹ hơn gấp nhiều lần.
+Dự án **Crystallized Iron** chính thức chia tay Node Graph giả lập cũ, bước vào hệ thống bản đồ Địa hình Không Gian 3 Chiều mở lớn (Open World 3D).
 
 ---
 
-## 2. Cấu trúc Dữ liệu Bản đồ (Data Structure)
+## 1. Nền tảng Thế Giới (World Generation)
 
-Hệ thống Map được thiết kế xoay quanh mô hình **Node & Path (Các Điểm và Đường đi)** thay vì Grid Tilemap.
+- **Unity Terrain System:** 
+  Game sử dụng hệ thống Terrain đồi núi, bãi lở đất tự chỉnh của Unity. Địa hình này có Collider, có chỗ trũng có sông nước, có vách cao để lẩn trốn tầm bắn của súng đạn.
+- **Spawn Cứ Điểm:**
+  Nhà máy xí nghiệp hoặc các hố Quặng Thiết Tinh được spawn ở các vị trí tọa độ chiến lược. Đây là những POI (Điểm đáng chú ý), thu hút người chơi và quái vật tụ tập về để khai thác tài nguyên xịn hoặc bắn giết trộm đồ lẫn nhau.
 
-Một đối tượng `AreaMap` bao gồm:
-- `id`: Mã định danh độc nhất của bản đồ (VD: `area_ruined_city`).
-- `name`: Tên khu vực (VD: "Phế Tích Thiết Tinh").
-- `difficultyLevel`: Mức độ khó chung (quyết định chỉ số quái vật).
-- `nodes`: Mảng chứa các "Điểm đến" (Nodes). Mỗi Node có thể là:
-  - `Trống (Empty)`: Di chuyển an toàn.
-  - `Quái thường (Mob)`: Kích hoạt trận chiến tự động qua Battle Log.
-  - `Rương báu (Treasure)`: Nhặt được vật phẩm, tài nguyên.
-  - `Sự kiện (Event)`: Cạm bẫy, gặp NPC, hoặc sự kiện ngẫu nhiên.
-  - `Boss (Thống lĩnh)`: Trận chiến cam go ở cuối bản đồ.
-- `paths`: Mảng các liên kết (Edges/Links) chỉ ra Node nào được nối với Node nào.
+## 2. Cơ chế phân bổ Tài nguyên 3D vật lý (Nodes)
 
----
+Lưu ý, chữ "Node" này trên 3D khác với khái niệm đi tuyến tính theo Map.
+- **Resource Prefabs:** Các gốc Cây Gỗ bự chà bá, hoặc Đồi Lưu Huỳnh, Khối Đá Sắt là các Asset 3D có Collider bao quanh đứng sừng sững ghim trên nền đất Terrain.
+- **Hit Detection:** Khi người chơi đập Rìu vào, Camera bắn ra một tia Raycast kiểm tra Object đang chém trúng là "Rock" hay "Tree". Object đó sẽ tụt máu đi, cứ mỗi 3 nhịp đập, Item Cục Sắt sẽ văng rơi tõm ra đất hoặc auto bay vào túi người chơi.
+- **Tự bù trừ (Respawn rate):** Mỗi cái Cây sau khi bị đập bể nát mất hút khỏi bản đồ, Hệ thống quản lý màn chơi (Game Manager cục bộ) sẽ âm thầm đánh dấu điểm đó đang trống và mọc lại (Respawn) sau vài Giờ/Phút trong đồng hồ in-game.
 
-## 3. Luồng Xử lý Backend (Node.js)
+## 3. Hệ Thống Ngày Đêm Khắc Nghiệt (Dynamic Day/Night Cycle)
 
-Quản lý lộ trình và sự kiện hoàn toàn diễn ra ngầm trên Server:
-
-1. **Khởi tạo chu kỳ (Exploration Loop):** Khi người chơi chọn một Map và ấn "Bắt đầu Thám hiểm", Server gắn ID Map vào State của người chơi.
-2. **Tick Time-based:** Dựa vào chỉ số `Speed` của nhân vật hoặc thời gian quy định (mặc định ~4 giây/Node), Server đẩy nhân vật qua Node tiếp theo.
-3. **Roll xắc suất:** Tại mỗi Node, Server tung Random Number Generator (RNG) dựa vào bảng thiết kế `Drop Rate` & `Encounter Rate` để quyết định nhân vật sẽ gặp sự kiện gì.
-4. **Tính toán chiến đấu (Headless Combat):** Nếu nhẫm vào Node "Quái", Server lập tức chạy thuật toán so sánh chỉ số (Tấn công phòng thủ) vắng bóng diễn họa, chỉ sinh ra chuỗi JSON kết quả (Text Log Battle). Nhận được đồ vật, hệ thống lưu thẳng vào rương (Database) mà không rơi ra đất.
-5. **Gửi Log về Client:** Qua WebSocket, Server đẩy tệp JSON mô tả "Nhân vật đã đến Node 3, gặp Chuột Đột Biến, mất 120 máu, lụm được Áo Giáp Cháy (1 Sao)" xuống thiết bị (Web/Mobile) để hiển thị thành UI mượt mà.
-
----
-
-## 4. Giao diện Phía Client (Frontend)
-
-Client (Web H5) đóng vai trò là chiếc màn hình chiếu lại những gì Backend đã quyết định:
-- **Map rendering:** Vẽ các Node và đường nối bằng SVG hoặc HTML Canvas mượt mà, tĩnh lặng.
-- **Animation đơn giản:** Biểu tượng nhân vật trượt từ Node A sang Node B đính kèm một micro-animation.
-- **Battle Log View:** Một khung Box bên dưới sẽ liên tục xổ ra các dòng tin nhắn text cho người chơi biết chuyện gì đang xảy ra trong chuyến đi.
-- **Chế độ Ngoại tuyến (Offline IDLE):** Kể cả khi Client tắt, khi mở lên lại, Server sẽ gửi một bức tranh tóm tắt số Node đã vượt qua, số đồ đã nhặt được để đưa thẳng vào Inventory.
-
----
-
-## 5. Tài liệu liên quan
-
-- [CombatSystem.md](CombatSystem.md) - Chiến đấu xảy ra tại các Node mob/boss
-- [CharacterStats.md](CharacterStats.md) - Chỉ số nhân vật (ảnh hưởng speed thám hiểm)
-- [ItemSystem.md](ItemSystem.md) - Vật phẩm nhặt được từ thám hiểm
+Chu kỳ Ánh sáng trong game không chỉ để cho đẹp, nó là cốt lõi cân bằng Sinh Tồn:
+- **Tốc độ thời gian:** Thời gian quay liên tục. Một chu kỳ trọn vẹn (vd: 24 phút đời thực = 1 ngày game). Ban ngày kéo dài hơn ban đêm để cung cấp khung giờ "Tương đối an toàn" cho việc Xây Dựng và Đi săn.
+- **Che Khuất Tầm Nhìn (Visibility):** Khi Mặt Trời lặn hẳn, Bóng tối sẽ bao phủ đen kịt hoàn toàn. Không có ánh Trăng nhân tạo soi sáng rõ đường đi. Người chơi BẮT BUỘC phải chế tạo Thiết bị Hỗ trợ (Đuốc, Đèn Pin lắp trên súng, Kính nhìn đêm) hoặc thắp sáng cả khu vực khai thác bằng Đèn Pha Nối Điện (Searchlights), nếu không sẽ bị lạc giữa rừng.
+- **Bóng Đêm Thức Giấc (Night Horrors):** Màn đêm thu hút đám Mutant mắt đỏ lộng hành nhiều hơn, tỉ lệ xuất hiện Dã Thú tăng cao và đặc biệt là cực kì máu chiến (Tăng Aggro / Tầm nhìn phát hiện người). Quái vật có thể đi lang thang bủa vây lại các hầm mỏ mà ban ngày bạn đang khoan quặng tiếng ồn rầm rầm.
+- **Nguồn Lạnh Lẽo (Cold Temperature penalty):** Sương mù và cái lạnh buốt xương ban đêm sẽ làm chỉ số **Máu (HP)** và **Đói (Hunger)** giảm xuống nhanh hơn bình thường. Bạn cần đốt Lửa Trại (Campfire) hoặc đứng trong bán kính nhiệt của Lò Nung Công Nghiệp (Furnace) bên trong 4 vách Tường kín gió để sưởi ấm vượt qua đêm tối.

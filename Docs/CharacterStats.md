@@ -1,62 +1,38 @@
-# ⚔️ THÔNG SỐ VÀ CHỈ SỐ NHÂN VẬT (CHARACTER STATS)
+# 🧑‍⚕️ THÔNG SỐ NHÂN VẬT & SINH TỒN (CHARACTER SURVIVAL STATS)
 
-Tài liệu này dùng để định nghĩa và làm tài liệu tham khảo cho mọi Hệ thống chỉ số chiến đấu, sinh tồn của các "Kẻ Thức Tỉnh" (Awakeners) trong trò chơi **Crystallized Iron**.
+Trong dự án Sinh Tồn 3D **Crystallized Iron**, mọi chỉ số RPG truyền thống phức tạp như `Attack`, `Defense`, `Evasion`, `Accuracy`, `Crit`, v.v. **ĐỀU ĐÃ BỊ LOẠI BỎ**. 
 
----
-
-## 1. Cơ cấu Dữ lịêu Thể Hiện (Data Structure)
-
-Theo cấu trúc trong Backend (`src/types.ts` và `src/Player.ts`), trạng thái của một nhân vật hay Kẻ Thức Tỉnh (PlayerState) bao gồm các trường thông tin:
-
-*   **Định danh cơ bản:**
-    *   `id` (String): Mã định danh (UUIDv4) của mỗi user kết nối.
-    *   `name` (String): Tên hiển thị trên đầu nhân vật.
-    *   `currentMapId`: ID của bản đồ (Node Graph) mà nhân vật đang thám hiểm.
-    *   `currentNodeId`: ID của Node hiện tại trên bản đồ.
-
-*   **Chỉ số Sinh Tồn & Cốt Lõi:**
-    *   `level` (Khoảng 1-100): Cấp độ hiện tại của nhân vật.
-    *   `hp / maxHp`: Lượng Máu (Sức khỏe) hiện tại và tối đa. Mặc định nhân vật level 1 có 100 máu. Khi máu trong Log giao tranh về 0, thẻ nhân vật bị ẩn, báo hiệu thua trận.
-    *   `mp / maxMp`: Năng lượng (Mana). Được tiêu tốn để kích hoạt chỉ số ngầm trong các thẻ bài/Kỹ năng đặc biệt ở một vài lượt Text Log nhất định. (Mặc định: `50`)
-
-*   **Chỉ số Giao Tranh (Combat Stats - Quyết định Kết quả Battle Log):**
-    *   `attack` (Tấn công): Lực đánh tổng quát của nhân vật. Lượng sát thương thuần túy dùng tính toán trong Text Log Battle. Mặc định khởi điểm có thể là `10`.
-    *   `defense` (Phòng thủ): Chỉ số chống chịu, cản sát thương. Công thức logic log chiến đấu cơ bản: `Sát Thương Thực = Tấn Công đối phương - Phòng Thủ bản thân`. (Mặc định: `5`)
-    *   `accuracy` (Chính xác): Chỉ số đối trọng với khả năng né tránh của địch. Tính toán tỷ lệ phần trăm ra đòn trúng.
-    *   `evasion` (Né tránh): Khả năng hoàn toàn vô hiệu hóa sát thương một đòn đánh dựa trên chỉ số phần trăm. Tính như sau: `Tỷ lệ đánh trúng = Chính xác đòn tấn công - Né tránh phe thủ`.
-    *   `speed` (Tốc độ): Quyết định ai là người xuất phát đầu tiên trong mỗi Turn của Battle Log. Rất quan trọng ở đấu trường.
-    *   `critChance` (Tỉ lệ Chí mạng): Tỉ lệ xuất hiện bạo kích trên Log (Ví dụ: `0.05` tức `5%`). Sát thương ×1.8.
-
-*   **Chỉ số Kháng Tính:**
-    *   `magicResistance` (Kháng phép): Giảm sát thương phép thuật nhận vào. (Mặc định: `0`)
-    *   `effectResistance` (Kháng hiệu ứng): Giảm tỷ lệ dính hiệu ứng bất lợi (debuff). (Mặc định: `0`)
-
-*   **Chỉ số Phát triển Nâng Cao:**
-    *   `experience` (Kinh nghiệm - EXP): Lượng kinh nghiệm nhận được khi tiêu diệt quái/boss hay hoàn tất nhiệm vụ.
-    *   `statPoints` (Điểm Chỉ số): Lượng điểm người chơi nhận được khi tăng Cấp độ (+ Level). Có thể dùng số điểm này trong UI để chủ động nâng cấp `HP, MP, Attack, Defense, Speed` nhằm xây dựng min/max thông số cho thẻ bài của mình.
+Nhân vật của bạn là một con người phàm trần bình thường, sự mạnh/yếu xuất phát từ súng ống đồ đạc bạn cầm, sức khỏe con người chỉ gói gọn ở mức **04 THÔNG SỐ SINH LÝ** hiển thị trên góc HUD dưới đây:
 
 ---
 
-## 2. Quy trình Luân chuyển Chỉ số giữa Server và Client
+## 1. CHI TIẾT 04 CHỈ SỐ CỐT LÕI
 
-Hệ thống chỉ số đang áp dụng mô hình **Authoritative Server** (Máy chủ uy quyền):
-1. Mọi chỉ số của nhân vật đều được lưu trữ và tính toán hoàn toàn nằm trên Code Backend Node.js (trong Class `Player`).
-2. Mọi diễn biến tăng hay giảm HP, MP đều do logic trên máy chủ quyết định chứ không phải Client.
-3. Client (Web H5) chỉ biết được bức tranh toàn cảnh khi thông điệp `INIT_STATE` (Lúc bắt đầu vào game) hoặc bản tin đồng bộ định kỳ được truyền đến. Do vậy, việc hack chỉnh sửa máu 99999 từ Web Client/Local memory sẽ trở nên vô nghĩa, giúp trò chơi giữ tính công bằng tuyệt đối.
+### A. Máu (Health / HP)
+- **Mô tả:** Lượng sinh lực quyết định sống - chết.
+- **Hoạt động:** Hiện diện dưới dạng một thanh Bar màu đỏ (Từ 0 đến 100).
+- **Phạt (Penalty):** Khi máu chạm vạch 0, nhân vật **Cúi gục (Death)**. Hành trang sẽ văng ra ngoài thành một hòm túi (Loot sack) để ai cũng nhặt được. Nhân vật sẽ buộc hồi sinh (Respawn) tại một túi ngủ (Sleeping bag) đã xếp sẵn hoặc bờ biển ở trạng thái Máu thấp trắng tay.
+- **Hồi phục:** Quấn Băng y tế, tiêm ngòi Sinh học, sử dụng túi cứu thương (Medkit). Ăn no, uống đủ cũng đẩy từ từ lượng HP dư dần lên.
+
+### B. Giáp (Armor Mitigation)
+- **Mô tả:** Sự vững chãi và năng lực chống đạn bảo hộ.
+- **Hoạt động:** Hiện diện cùng cạnh Máu bằng thanh Bar màu xám kim loại. Bạn phải có đồ bảo hộ mặc trên khung Cơ thể (Áo vải, Áo da chó, Giáp Thiết Tinh) thì chỉ số này mới lớn hơn 0.
+- **Quy tắc chặn sát thương:** Nếu bị Quái cắn hoặc Đạn bắn trúng, lượng sát thương sẽ đập vào Giáp đứt đi một nửa (hoặc 1 lượng tỷ lệ % được giảm) trước khi trừ vào thanh Máu. Quần áo mặc lâu ngày dính nhiều chấn thương sẽ "Hỏng hóc" (Mất độ bền làm trừ mất Giáp).
+
+### C. Đói (Hunger)
+- **Mô tả:** Lượng thức ăn và chất dinh dưỡng trong bụng.
+- **Hoạt động:** Thanh Bar màu xanh nhạt hoặc Cam nằm dưới, từ 0 đến 100.
+- **Tại sao giảm:** Mọi dòng thời gian 24h trôi qua sẽ làm hệ thống tiêu hóa liên tục làm Đói từ từ. Nếu chạy đua nước rút, lao lực chặt cây bửa củi liên tay thì cơn đói xé rách cuống họng nhanh gấp đôi.
+- **Phạt (Penalty):** Khi bụng đói chạm vạch 0 (Starving), nhân vật suy nhược, tầm nhìn lay lắc chao đảo, máu từ từ rút ở tiến độ ổn định cho tới khi gục xuống chết đói.
+- **Hồi phục:** Nhanh chóng nạp vào Thịt cừu nướng, Mì hộp rỉ sét lượm được, Ngô trồng ở rẫy.
+
+### D. Khát (Thirst)
+- **Mô tả:** Lượng nước sống còn.
+- **Hoạt động:** Thanh Bar màu Xanh biếc giọt nước, dao động 0 đến 100. Cơ thể con người chịu Khát tồi hơn chịu Đói, vì thế tốc độ tụt thanh nước sẽ luôn **nhanh hơn 1.5 lần** thanh đồ ăn. Đặc biệt nếu đang đứng trong Biome dạng Sa Mạc.
+- **Phạt (Penalty):** Thiếu nước dẫn tới tình trạng Khô Hạn. Nhân vật không thể tăng tốc (Sprinting) được nữa vì thể lực tụt rễ. Máu cũng sẽ lao dốc dần cho đến chết.
+- **Hồi phục:** Vơ vét bình nước uống vội, hứng nước sương mai, đun sôi nước ao sông cho hết phóng xạ bằng Bình Thiết Tinh sạch, ăn các hạt quả mọng nhiều nước.
 
 ---
 
-## 3. Khả năng phát triển tương lai (Future Scalability)
-
-Sắp tới, cấu trúc này có thể mở rộng bổ sung trực tiếp trên TypeScript Interface:
-- **`attackSpeed`:** Tốc độ ra đòn đánh.
-- **`moveSpeed`:** Tốc độ bước chạy/di chuyển của nhân vật (Buff tùy theo trang bị).
-- **Trạng Thái Hiệu Ứng (Status Ailments):** Bổ sung array/object về các hiệu ứng Trúng Độc (`Poison`), Cháy (`Burn`), Giảm phòng thủ đang có thời hạn trên người.
-
----
-
-## 4. Tài liệu liên quan
-
-- [CombatSystem.md](CombatSystem.md) - Công thức chiến đấu sử dụng các chỉ số này
-- [LevelingSystem.md](LevelingSystem.md) - Hệ thống cấp độ & phân bổ stat points
-- [ItemSystem.md](ItemSystem.md) - Trang bị ảnh hưởng chỉ số nhân vật
+## 2. CHÚ THÍCH PHÒNG TRỪ Ý ĐỊNH
+Tuyệt đối nhấn mạnh với AI, nếu yêu cầu lập trình hay sửa file thuộc về `Character/Player`, **KHÔNG ĐƯỢC PHÉP** add thêm bất kì biến dạng kỹ năng thần kì nào khác. Không Mana. Không Tốc Đánh nội tại. Hãy tập trung 100% tài nguyên xử lý logic cho 4 biến `hp, armor, hunger, thirst` được bảo toàn và update real-time bằng C# trên Unity / Server.

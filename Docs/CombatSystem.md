@@ -1,84 +1,30 @@
-# ⚔️ THIẾT KẾ HỆ THỐNG CHIẾN ĐẤU (COMBAT SYSTEM DESIGN)
+# 🔫 HỆ THỐNG CHIẾN ĐẤU (COMBAT & SHOOTER SYSTEM)
 
-Tài liệu này mô tả chi tiết thiết kế và công thức của hệ thống chiến đấu trong **Crystallized Iron**.
-
----
-
-## 1. Tổng quan
-
-- Chiến đấu = **Text Log** (nhật ký văn bản), KHÔNG có hoạt ảnh đâm chém
-- Kết quả trận đánh tính toán hoàn toàn trên **Server** (Authoritative)
-- Client chỉ **hiển thị** kết quả, KHÔNG được tính toán damage
-- Hai tấm thẻ của Nhân vật và Quái vật đại diện đối đầu nhau trên giao diện
-- Bên dưới là khung nhật ký trận đánh (Battle Log)
+Xóa sổ lối chơi trận chiến bằng nhật ký thư rác Text-log. Đây là một con game theo thiên hướng góc nhìn thực tế với kỹ thuật bắn súng.
 
 ---
 
-## 2. Công thức chiến đấu
+## 1. Phòng Thủ Cứ Điểm Trọng Tâm (Base Defense & Tower Defense Focus)
 
-### Sát thương
-```
-Sát thương thực tế = max(1, Tấn công - Phòng thủ) × random(0.8, 1.2)
-```
+Trong **Crystallized Iron**, hệ thống đấu súng cá nhân cầm tay (Súng lục, Súng trường) **được tối giản hóa**. Con người quá nhỏ bé trước những bầy Mutant khát máu. Thay vì múa súng Rambo, cốt lõi chiến đấu nằm ở Nghệ thuật Thủ Thành (Tower Defense) và điều phối hỏa lực từ Căn Cứ.
+- **Vũ Khí Cá Nhân:** Chỉ giữ lại ở mức cơ bản để tự vệ đi đường lúc đầu (Rựa, Cung tên, Súng Lục). Yếu và nhanh hỏng.
+- **Hệ Thống Pháo Đài (Turrets & Fortifications):** Xây dựng các lô cốt Tường bê tông dày, cắm các Trụ Pháo Tự Động (Auto-Turrets) súng máy và súng phun lửa rải quanh chu vi nhà để cày nát các bầy quái vật.
+- **Hỏa Lực Hạng Nặng & Tên Lửa:** Sử dụng Bệ phóng tên lửa (Rocket Pods), Tên Lửa Phòng Không (SAMs) để đánh chặn các mục tiêu bay hoặc Tên Lửa Đạn Đạo (Ballistic Missiles) quét sạch tổ quái vật từ khoảng cách hàng cây số.
 
-### Chí mạng
-```
-Chí mạng = Sát thương × 1.8 (nếu roll < critChance)
-```
+## 2. Thiết Bị Thông Minh & Drone (Drones & Remote Warfare)
 
-### Tỷ lệ đánh trúng
-```
-Tỷ lệ đánh trúng = Chính xác tấn công - Né tránh phòng thủ
-```
+Khí tài quân sự tự động thay con người chiến đấu:
+- **Drone Trinh Sát (Recon Drones):** Cất cánh từ trạm Base, người chơi bấm máy tính điều khiển bay lên cao để khảo sát bản đồ, dò tìm mỏ quặng mới hoặc lấy tầm nhìn các đợt tấn công của Quái mà không phải ló mặt ra ngoài.
+- **Kamikaze Drone (Drone Cảm Tử):** Trói thuốc nổ C4 vào Drone, điều khiển bay thẳng vào hang ổ lũ Mutant và nhấn nút bùm, gây sát thương AoE cực lớn.
+- **Tự động thay đạn:** Các hệ thống vũ khí trạm này sẽ yêu cầu Băng chuyền chở đạn liên tục từ kho đến nòng súng. Máy móc làm thay công việc bóp cò.
 
-### Thứ tự hành động
-```
-Thứ tự hành động = So sánh Speed, cao hơn đánh trước
-```
+## 3. Các Đợt Công Kích Của Quái Vật (Mutant Siege Waves)
+- Trò chơi sẽ không chỉ để sinh tồn tà tà. Định kỳ (VD: Mỗi 3 ngày đêm hoặc khi Mức Độ Tiếng Bồn Căn Cứ đạt đỉnh), các **Đợt Tấn Công (Siege Waves)** quy mô lớn sẽ kéo đến.
+- Lũ heo rừng gai, zombie phóng xạ và chim cuộn thép sẽ tụ tập thành bầy đàn đông nghẹt, húc tung các lớp vách rào và muốn phá hủy cỗ Máy Phát Điện / Máy Ép Thiết Tinh của bạn để cướp lại năng lượng.
+- Bạn sẽ ngồi trên tháp điều khiển, bật Cảm biến phát hiện sớm (Radar), cấp nguồn điện cho các bệ Pháo Đài, điều khiển Hỏa Tiễn và nhâm nhi ngắm cỗ máy nhà bạn xay nát chúng nó.
 
----
-
-## 3. Chỉ số chiến đấu
-
-| Chỉ số | Field name | Mặc định Lv.1 | Mô tả |
-|--------|-----------|---------------|-------|
-| Tấn công | `attack` | 10 | Lực đánh tổng quát, dùng tính sát thương trong Battle Log |
-| Phòng thủ | `defense` | 5 | Chỉ số chống chịu, cản sát thương |
-| Chính xác | `accuracy` | 100 | Đối trọng với né tránh, tính tỷ lệ đánh trúng |
-| Né tránh | `evasion` | 5 | Vô hiệu hóa sát thương một đòn đánh |
-| Tốc độ | `speed` | 10 | Quyết định ai xuất phát đầu tiên mỗi Turn |
-| Chí mạng | `critChance` | 0.05 (5%) | Tỷ lệ xuất hiện bạo kích trên Log |
-| Kháng phép | `magicResistance` | 0 | Giảm sát thương phép thuật nhận vào |
-| Kháng hiệu ứng | `effectResistance` | 0 | Giảm tỷ lệ dính debuff |
-
-> Xem thêm chi tiết tại [CharacterStats.md](CharacterStats.md)
-
----
-
-## 4. Luồng xử lý trận đánh
-
-1. **Gặp quái:** Khi nhân vật di chuyển đến Node loại `mob` hoặc `boss`, Server kích hoạt trận đánh
-2. **Tính toán Turn:** Server so sánh `speed` hai bên → bên nhanh hơn đánh trước
-3. **Roll đánh trúng:** Tính `accuracy - evasion` → roll xem có trúng không
-4. **Tính sát thương:** Nếu trúng → tính damage theo công thức, roll crit
-5. **Ghi Log:** Mỗi hành động sinh ra một dòng text log (JSON)
-6. **Lặp lại:** Cho đến khi một bên HP = 0
-7. **Gửi kết quả:** Toàn bộ log + kết quả gửi về Client qua WebSocket
-
----
-
-## 5. Hiển thị trên Client
-
-- **Card-based Text Battle:** Hai tấm thẻ (Card-Art) đại diện đối đầu
-- **Battle Log Box:** Khung hiển thị liên tục các dòng text mô tả trận đánh
-- **Ví dụ log:** *"Nhân vật A tung đòn bạo kích, gây 300 sát thương vào quái vật B"*
-- Thanh HP/MP cập nhật theo kết quả từ Server
-
----
-
-## 6. Tài liệu liên quan
-
-- [CharacterStats.md](CharacterStats.md) - Chi tiết chỉ số nhân vật
-- [LevelingSystem.md](LevelingSystem.md) - Hệ thống cấp độ & kinh nghiệm
-- [MapSystem_Architecture.md](MapSystem_Architecture.md) - Hệ thống bản đồ (nơi kích hoạt chiến đấu)
-- [CurrencySystem.md](CurrencySystem.md) - Phần thưởng tiền tệ từ chiến đấu
+## 4. Quần Xã Quái Vật (Mutant Camps & Ecosystem)
+Quái vật không chỉ bỗng dưng sinh ra ném từ trên trời xuống, mà chúng có tính lãnh thổ và tập tính di cư:
+- **Căn Cứ Quái Vật (Mutant Camps/Hives):** Rải rác khắp bản đồ là các hang trũng hoặc những nhà máy gỉ sét đã bị Mutant chiếm đóng. Chúng tập trung đông đúc quanh một "Trái tim" (Hive/Spawners). Nếu người chơi tiêu diệt các căn cứ này sẽ nhặt được Rương đồ xịn (Rare Loot), đồng nghĩa khu vực xung quanh sẽ bớt tần suất Quái lang thang trong 1 thời gian dài.
+- **Tuần Tra Theo Bầy (Roaming Hordes):** Từ các căn cứ mẹ, thỉnh thoảng sẽ có một toán "Tuần Tra" (Pack) dắt nhau đi một đường thẳng xuyên qua bản đồ. Nếu toán này tình cờ đi ngang qua Căn cứ của người chơi, chúng sẽ gây ra rắc rối lớn.
+- **Sói Cô Độc (Lone Wanderers):** Những cá thể nhỏ lẻ bị lạc bầy, đi loanh quanh khắp rừng. Dễ dàng tiêu diệt để kiếm thịt, nhưng hãy cẩn thận tiếng súng tiêu diệt chúng có thể gọi bầy khác tới gần.
