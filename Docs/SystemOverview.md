@@ -46,7 +46,7 @@ Do đã từ bỏ cơ chế game Card/Text-based, dưới đây là bộ khung h
 - Tiến hóa lên lập chuỗi tự động hóa với máy khoan (Mining), băng chuyền thu thập (Logistics), nhà máy nung quặng, cho đến hệ thống phòng thủ tấn công (Tháp canh điện) dùng dây cáp nối mạch. Mở ra kỉ nguyên cách mạng công nghiệp cho hòn đảo.
 
 ### 2.5 🎒 Hệ thống Quản lí Vật phẩm (Inventory Flow)
-> Chi tiết tại: [ItemSystem.md](ItemSystem.md)
+> Chi tiết tại: [ItemSystem.md](ItemSystem.md) | **Trực quan Logic:** [ItemLogic_Visualization.md](ItemLogic_Visualization.md)
 
 - Xếp đồ, nạp đạn vào băng tiếp đạn, sửa chữa vũ khí hỏng.
 - Cho phép Drop tài nguyên mang dư ra đất tạo thành một gói Mesh 3D để người chơi khác lấy.
